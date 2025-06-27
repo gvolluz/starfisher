@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Starfisher</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <header style="position: relative;">
+        <nav class="main-nav">
+            <div class="logo">Starfisher</div>
+            <ul class="nav-links">
+                <li><a href="#" class="active" data-page="home" data-i18n="nav_home">Accueil</a></li>
+                <li><a href="#" data-page="create-npc" data-i18n="nav_create_npc">Créer un PNJ</a></li>
+                <li><a href="#" data-page="create-combat" data-i18n="nav_create_combat">Créer un Combat</a></li>
+                <li><a href="#" data-page="manage-combat" data-i18n="nav_manage_combat">Gérer un Combat</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main id="app-container">
+        <section id="home" class="page active">
+            <h1 data-i18n="welcome_title">Bienvenue sur Starfisher</h1>
+            <p data-i18n="welcome_subtitle">L'assistant de Maître de Jeu pour Starfinder</p>
+            <div class="features">
+                <div class="feature-card">
+                    <h2 data-i18n="feature_create_npc">Créer un PNJ</h2>
+                    <p data-i18n="feature_create_npc_desc">Créez rapidement des PNJ avec toutes les informations nécessaires pour le combat.</p>
+                    <button class="btn" data-page="create-npc" data-i18n="button_start">Commencer</button>
+                </div>
+                <div class="feature-card">
+                    <h2 data-i18n="feature_create_combat">Créer un Combat</h2>
+                    <p data-i18n="feature_create_combat_desc">Préparez vos combats en sélectionnant les PNJ et en configurant l'environnement.</p>
+                    <button class="btn" data-page="create-combat" data-i18n="button_start">Commencer</button>
+                </div>
+                <div class="feature-card">
+                    <h2 data-i18n="feature_manage_combat">Gérer un Combat</h2>
+                    <p data-i18n="feature_manage_combat_desc">Suivez facilement l'initiative, les points de vie et les effets pendant le combat.</p>
+                    <button class="btn" data-page="manage-combat" data-i18n="button_start">Commencer</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="create-npc" class="page">
+            <h1 data-i18n="feature_create_npc">Créer un PNJ</h1>
+            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
+        </section>
+
+        <section id="create-combat" class="page">
+            <h1 data-i18n="feature_create_combat">Créer un Combat</h1>
+            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
+        </section>
+
+        <section id="manage-combat" class="page">
+            <h1 data-i18n="feature_manage_combat">Gérer un Combat</h1>
+            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p data-i18n="copyright">&copy; 2025 Starfisher - Assistant de Maître de Jeu pour Starfinder</p>
+    </footer>
+
+    <script src="js/i18n.js"></script>
+    <script src="js/language-switcher.js"></script>
+    <script src="js/portable-db.js"></script>
+    <script src="js/db-ui.js"></script>
+    <script src="js/dice-roller.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- Ensure language switcher is created -->
+    <script>
+        // Try to create the language switcher after a short delay
+        setTimeout(function() {
+            console.log('Delayed language switcher creation (1000ms)');
+            if (window.createLanguageSwitcherManually) {
+                window.createLanguageSwitcherManually();
+            } else {
+                console.error('createLanguageSwitcherManually function not found');
+            }
+        }, 1000);
+
+        // Fallback: Try again with a longer delay if the first attempt fails
+        setTimeout(function() {
+            console.log('Fallback language switcher creation (2000ms)');
+            if (!document.querySelector('.language-switcher') && window.createLanguageSwitcherManually) {
+                console.log('Language switcher still not found, trying again');
+                window.createLanguageSwitcherManually();
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

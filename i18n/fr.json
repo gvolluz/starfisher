@@ -1,0 +1,41 @@
+{
+  "language_name": "Français",
+  "language_country": "fr",
+
+  "nav_home": "Accueil",
+  "nav_create_npc": "Créer un PNJ",
+  "nav_create_combat": "Créer un Combat",
+  "nav_manage_combat": "Gérer un Combat",
+
+  "welcome_title": "Bienvenue sur Starfisher",
+  "welcome_subtitle": "L'assistant de Maître de Jeu pour Starfinder",
+  "feature_create_npc": "Créer un PNJ",
+  "feature_create_npc_desc": "Créez rapidement des PNJ avec toutes les informations nécessaires pour le combat.",
+  "feature_create_combat": "Créer un Combat",
+  "feature_create_combat_desc": "Préparez vos combats en sélectionnant les PNJ et en configurant l'environnement.",
+  "feature_manage_combat": "Gérer un Combat",
+  "feature_manage_combat_desc": "Suivez facilement l'initiative, les points de vie et les effets pendant le combat.",
+  "button_start": "Commencer",
+
+  "coming_soon": "Cette fonctionnalité sera bientôt disponible.",
+
+  "export_db": "Exporter la base de données",
+  "import_db": "Importer une base de données",
+  "db_auto_save": "Les données sont automatiquement sauvegardées dans le répertoire \"data\".",
+
+  "export_progress": "Exportation de la base de données...",
+  "export_success": "Base de données exportée avec succès",
+  "export_error": "Erreur lors de l'exportation",
+  "import_progress": "Importation de la base de données...",
+  "import_success": "Base de données importée avec succès",
+  "import_error": "Erreur lors de l'importation",
+  "export_unavailable": "Fonctionnalité d'exportation non disponible",
+  "import_unavailable": "Fonctionnalité d'importation non disponible",
+  "storage_error": "Erreur de stockage. Les données seront sauvegardées automatiquement dans le répertoire \"data\" ou vous pouvez exporter vos données manuellement.",
+
+  "roll_button": "Lancer",
+  "dice_results": "Résultats",
+  "dice_total": "Total",
+
+  "copyright": "© 2025 Starfisher - Assistant de Maître de Jeu pour Starfinder"
+}

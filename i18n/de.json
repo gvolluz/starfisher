@@ -1,0 +1,41 @@
+{
+  "language_name": "Deutsch",
+  "language_country": "de",
+
+  "nav_home": "Startseite",
+  "nav_create_npc": "NSC erstellen",
+  "nav_create_combat": "Kampf erstellen",
+  "nav_manage_combat": "Kampf verwalten",
+
+  "welcome_title": "Willkommen bei Starfisher",
+  "welcome_subtitle": "Der Spielleiter-Assistent für Starfinder",
+  "feature_create_npc": "NSC erstellen",
+  "feature_create_npc_desc": "Erstelle schnell NSCs mit allen notwendigen Informationen für den Kampf.",
+  "feature_create_combat": "Kampf erstellen",
+  "feature_create_combat_desc": "Bereite deine Kämpfe vor, indem du NSCs auswählst und die Umgebung konfigurierst.",
+  "feature_manage_combat": "Kampf verwalten",
+  "feature_manage_combat_desc": "Verfolge einfach Initiative, Trefferpunkte und Effekte während des Kampfes.",
+  "button_start": "Starten",
+
+  "coming_soon": "Diese Funktion wird bald verfügbar sein.",
+
+  "export_db": "Datenbank exportieren",
+  "import_db": "Datenbank importieren",
+  "db_auto_save": "Daten werden automatisch im Verzeichnis \"data\" gespeichert.",
+
+  "export_progress": "Datenbank wird exportiert...",
+  "export_success": "Datenbank erfolgreich exportiert",
+  "export_error": "Fehler beim Exportieren der Datenbank",
+  "import_progress": "Datenbank wird importiert...",
+  "import_success": "Datenbank erfolgreich importiert",
+  "import_error": "Fehler beim Importieren der Datenbank",
+  "export_unavailable": "Export-Funktionalität nicht verfügbar",
+  "import_unavailable": "Import-Funktionalität nicht verfügbar",
+  "storage_error": "Speicherfehler. Daten werden automatisch im Verzeichnis \"data\" gespeichert oder Sie können Ihre Daten manuell exportieren.",
+
+  "roll_button": "Würfeln",
+  "dice_results": "Ergebnisse",
+  "dice_total": "Gesamt",
+
+  "copyright": "© 2025 Starfisher - Spielleiter-Assistent für Starfinder"
+}

@@ -1,0 +1,41 @@
+{
+  "language_name": "English",
+  "language_country": "gb",
+
+  "nav_home": "Home",
+  "nav_create_npc": "Create NPC",
+  "nav_create_combat": "Create Combat",
+  "nav_manage_combat": "Manage Combat",
+
+  "welcome_title": "Welcome to Starfisher",
+  "welcome_subtitle": "The Game Master's Assistant for Starfinder",
+  "feature_create_npc": "Create NPC",
+  "feature_create_npc_desc": "Quickly create NPCs with all the necessary information for combat.",
+  "feature_create_combat": "Create Combat",
+  "feature_create_combat_desc": "Prepare your combats by selecting NPCs and configuring the environment.",
+  "feature_manage_combat": "Manage Combat",
+  "feature_manage_combat_desc": "Easily track initiative, hit points, and effects during combat.",
+  "button_start": "Start",
+
+  "coming_soon": "This feature will be available soon.",
+
+  "export_db": "Export Database",
+  "import_db": "Import Database",
+  "db_auto_save": "Data is automatically saved in the \"data\" directory.",
+
+  "export_progress": "Exporting database...",
+  "export_success": "Database exported successfully",
+  "export_error": "Error exporting database",
+  "import_progress": "Importing database...",
+  "import_success": "Database imported successfully",
+  "import_error": "Error importing database",
+  "export_unavailable": "Export functionality not available",
+  "import_unavailable": "Import functionality not available",
+  "storage_error": "Storage error. Data will be automatically saved in the \"data\" directory or you can manually export your data.",
+
+  "roll_button": "Roll",
+  "dice_results": "Results",
+  "dice_total": "Total",
+
+  "copyright": "© 2025 Starfisher - Game Master's Assistant for Starfinder"
+}
