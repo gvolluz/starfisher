@@ -201,8 +201,8 @@ footer {
 /* Dice Roller */
 .dice-roller {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    top: 80px; /* Position below the navigation */
+    right: 20px;
     z-index: 1000;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -222,6 +222,8 @@ footer {
     align-items: center;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
     transition: transform 0.3s, background-color 0.3s;
+    position: relative;
+    z-index: 20; /* Ensure it's above the panel */
 }
 
 .dice-toggle:hover {
@@ -235,75 +237,66 @@ footer {
     align-items: center;
     color: white;
     font-weight: bold;
+    padding: 3px; /* Added 3px padding to make text less cramped */
+}
+
+/* All dice have the same size for consistency */
+.dice {
+    width: 40px;
+    height: 40px;
 }
 
 .dice.d20 {
-    width: 40px;
-    height: 40px;
     clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
     background-color: var(--secondary-color);
 }
 
 .dice.d4 {
-    width: 36px;
-    height: 36px;
     clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
     background-color: #e74c3c;
 }
 
 .dice.d6 {
-    width: 36px;
-    height: 36px;
     clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
     background-color: #f39c12;
 }
 
 .dice.d8 {
-    width: 36px;
-    height: 36px;
     clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
     background-color: #2ecc71;
 }
 
 .dice.d10 {
-    width: 36px;
-    height: 36px;
     clip-path: polygon(50% 0%, 90% 20%, 100% 60%, 75% 100%, 25% 100%, 0% 60%, 10% 20%);
     background-color: #3498db;
 }
 
 .dice.d12 {
-    width: 36px;
-    height: 36px;
     clip-path: polygon(50% 0%, 80% 10%, 100% 35%, 100% 70%, 80% 90%, 50% 100%, 20% 90%, 0% 70%, 0% 35%, 20% 10%);
     background-color: #9b59b6;
 }
 
 .dice.d100 {
-    width: 36px;
-    height: 36px;
     border-radius: 50%;
     background-color: #34495e;
 }
 
 .dice-panel {
     position: absolute;
-    bottom: 70px;
-    left: 0;
+    top: 70px; /* Position below the toggle button */
+    right: 0;
     background-color: var(--card-bg);
     border-radius: var(--border-radius);
     box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
     padding: 1rem;
-    width: 250px;
+    width: auto;
+    z-index: 10; /* Lower than toggle button but higher than most content */
 }
 
-.dice-close {
-    position: absolute;
-    top: 5px;
-    right: 10px;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-color);
+/* Adjust panel position for left-positioned dice-roller */
+.dice-roller.left-positioned .dice-panel {
+    right: auto;
+    left: 0;
 }
 
 .dice-container {
@@ -322,6 +315,9 @@ footer {
     border-radius: var(--border-radius);
     cursor: pointer;
     transition: background-color 0.2s;
+    /* Create a consistent square container */
+    width: 100%;
+    height: 50px; /* Height to accommodate the largest die */
 }
 
 .dice-button:hover {
@@ -363,6 +359,40 @@ footer {
     margin-top: 1rem;
     border-top: 1px solid var(--light-bg);
     padding-top: 1rem;
+    position: relative;
+    display: none; /* Hide by default */
+}
+
+.dice-results.visible {
+    display: block; /* Show when has results */
+}
+
+/* Results on the left when dice-roller is on the right */
+.dice-roller.right-positioned .dice-results {
+    position: absolute;
+    top: 0;
+    right: 100%;
+    margin-right: 10px;
+    width: 250px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-top: none;
+}
+
+/* Results on the right when dice-roller is on the left */
+.dice-roller.left-positioned .dice-results {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    margin-left: 10px;
+    width: 250px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    border-top: none;
 }
 
 .dice-results h3 {
