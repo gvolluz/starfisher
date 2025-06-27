@@ -12,9 +12,8 @@
             <div class="logo">Starfisher</div>
             <ul class="nav-links">
                 <li><a href="#" class="active" data-page="home" data-i18n="nav_home">Accueil</a></li>
-                <li><a href="#" data-page="create-npc" data-i18n="nav_create_npc">Créer un PNJ</a></li>
-                <li><a href="#" data-page="create-combat" data-i18n="nav_create_combat">Créer un Combat</a></li>
-                <li><a href="#" data-page="manage-combat" data-i18n="nav_manage_combat">Gérer un Combat</a></li>
+                <li><a href="#" data-page="npcs" data-i18n="nav_npcs">PNJs</a></li>
+                <li><a href="#" data-page="combats" data-i18n="nav_combats">Combats</a></li>
                 <li><a href="#" data-page="settings" data-i18n="nav_settings">Paramètres</a></li>
             </ul>
         </nav>
@@ -26,36 +25,51 @@
             <p data-i18n="welcome_subtitle">L'assistant de Maître de Jeu pour Starfinder</p>
             <div class="features">
                 <div class="feature-card">
-                    <h2 data-i18n="feature_create_npc">Créer un PNJ</h2>
-                    <p data-i18n="feature_create_npc_desc">Créez rapidement des PNJ avec toutes les informations nécessaires pour le combat.</p>
-                    <button class="btn" data-page="create-npc" data-i18n="button_start">Commencer</button>
+                    <h2 data-i18n="feature_npcs">PNJs</h2>
+                    <p data-i18n="feature_npcs_desc">Consultez et gérez vos PNJs avec toutes les informations nécessaires pour le combat.</p>
+                    <button class="btn" data-page="npcs" data-i18n="button_view">Voir</button>
                 </div>
                 <div class="feature-card">
-                    <h2 data-i18n="feature_create_combat">Créer un Combat</h2>
-                    <p data-i18n="feature_create_combat_desc">Préparez vos combats en sélectionnant les PNJ et en configurant l'environnement.</p>
-                    <button class="btn" data-page="create-combat" data-i18n="button_start">Commencer</button>
+                    <h2 data-i18n="feature_combats">Combats</h2>
+                    <p data-i18n="feature_combats_desc">Consultez et gérez vos combats avec les scénarios et les scènes.</p>
+                    <button class="btn" data-page="combats" data-i18n="button_view">Voir</button>
                 </div>
                 <div class="feature-card">
-                    <h2 data-i18n="feature_manage_combat">Gérer un Combat</h2>
-                    <p data-i18n="feature_manage_combat_desc">Suivez facilement l'initiative, les points de vie et les effets pendant le combat.</p>
-                    <button class="btn" data-page="manage-combat" data-i18n="button_start">Commencer</button>
+                    <h2 data-i18n="feature_settings">Paramètres</h2>
+                    <p data-i18n="feature_settings_desc">Configurez l'application et gérez vos données.</p>
+                    <button class="btn" data-page="settings" data-i18n="button_view">Voir</button>
                 </div>
             </div>
         </section>
 
-        <section id="create-npc" class="page">
-            <h1 data-i18n="feature_create_npc">Créer un PNJ</h1>
-            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
+        <section id="npcs" class="page">
+            <h1 data-i18n="nav_npcs">PNJs</h1>
+            <div class="list-container">
+                <div class="list-header">
+                    <h2 data-i18n="recent_npcs">PNJs récents</h2>
+                </div>
+                <div class="list-items" id="npcs-list">
+                    <!-- NPC items will be added here dynamically -->
+                </div>
+            </div>
+            <div class="details-container" id="npc-details">
+                <!-- NPC details will be displayed here when an item is clicked -->
+            </div>
         </section>
 
-        <section id="create-combat" class="page">
-            <h1 data-i18n="feature_create_combat">Créer un Combat</h1>
-            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
-        </section>
-
-        <section id="manage-combat" class="page">
-            <h1 data-i18n="feature_manage_combat">Gérer un Combat</h1>
-            <p data-i18n="coming_soon">Cette fonctionnalité sera bientôt disponible.</p>
+        <section id="combats" class="page">
+            <h1 data-i18n="nav_combats">Combats</h1>
+            <div class="list-container">
+                <div class="list-header">
+                    <h2 data-i18n="recent_combats">Combats récents</h2>
+                </div>
+                <div class="list-items" id="combats-list">
+                    <!-- Combat items will be added here dynamically -->
+                </div>
+            </div>
+            <div class="details-container" id="combat-details">
+                <!-- Combat details will be displayed here when an item is clicked -->
+            </div>
         </section>
 
         <section id="settings" class="page">
@@ -78,6 +92,7 @@
     <script src="js/portable-db.js"></script>
     <script src="js/db-ui.js"></script>
     <script src="js/dice-roller.js"></script>
+    <script src="js/list-ui.js"></script>
     <script src="js/main.js"></script>
 
     <!-- Ensure language switcher is created -->
