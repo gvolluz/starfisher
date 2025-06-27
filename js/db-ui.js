@@ -62,10 +62,16 @@ function createDatabaseUI() {
         infoText.textContent = window.i18n.t('db_auto_save');
     });
 
-    // Add the section to the footer
-    const footer = document.querySelector('footer');
-    if (footer) {
-        footer.insertBefore(dbSection, footer.firstChild);
+    // Add the section to the settings page
+    const dbContainer = document.getElementById('db-management-container');
+    if (dbContainer) {
+        dbContainer.appendChild(dbSection);
+    } else {
+        // Fallback to footer if settings page is not available
+        const footer = document.querySelector('footer');
+        if (footer) {
+            footer.insertBefore(dbSection, footer.firstChild);
+        }
     }
 
     // Add styles
@@ -133,6 +139,22 @@ function addStyles() {
             justify-content: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .settings-section {
+            margin-bottom: 2rem;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--box-shadow);
+        }
+
+        .settings-section h2 {
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--light-bg);
+            padding-bottom: 0.5rem;
         }
 
         .db-btn {
