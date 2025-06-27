@@ -518,6 +518,142 @@ footer {
     margin-top: 1rem;
 }
 
+/* NPC Details Styling */
+.npc-details-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+}
+
+.npc-detail-row {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+}
+
+.npc-name-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-fp-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-stat-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.npc-immunities-container,
+.npc-attacks-container,
+.npc-details-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Attacks styling */
+.attacks-list {
+    margin-top: 0.5rem;
+}
+
+.attack-item {
+    background-color: #f9f9f9;
+    border-radius: var(--border-radius);
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--light-bg);
+}
+
+.attack-display {
+    font-weight: bold;
+}
+
+.attack-edit {
+    margin-top: 0.5rem;
+}
+
+.attack-edit-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.attack-field {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.attack-field label {
+    font-size: 0.8rem;
+    margin-bottom: 0.25rem;
+}
+
+.attack-field input {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid var(--light-bg);
+    border-radius: var(--border-radius);
+}
+
+.attack-actions {
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+.btn-small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.btn-danger {
+    background-color: #e74c3c;
+}
+
+.btn-danger:hover {
+    background-color: #c0392b;
+}
+
+.empty-attacks {
+    color: #999;
+    font-style: italic;
+}
+
+.attacks-actions {
+    margin-top: 0.5rem;
+}
+
+.npc-details-grid label {
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+    color: var(--primary-color);
+}
+
+.npc-details-grid input, .npc-details-grid textarea {
+    padding: 0.5rem;
+    border: 1px solid var(--light-bg);
+    border-radius: var(--border-radius);
+    background-color: #f9f9f9;
+}
+
+.npc-details-grid input:read-only, .npc-details-grid textarea:read-only {
+    background-color: #f5f5f5;
+    cursor: default;
+}
+
+.npc-details-grid textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .main-nav {

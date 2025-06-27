@@ -51,34 +51,30 @@ async function ensureDataDirectoryExists() {
  * Initialize the database
  * @returns {Promise} A promise that resolves when the database is ready
  */
-function initDatabase() {
-    return new Promise((resolve) => {
-        if (memoryDB) {
-            resolve(memoryDB);
-            return;
-        }
+async function initDatabase() {
+    if (memoryDB) {
+        return memoryDB;
+    }
 
+    try {
         // Ensure the data directory exists before trying to load the database
-        ensureDataDirectoryExists()
-            .then(() => {
-                // Try to load from file
-                return loadFromFile();
-            })
-            .then(db => {
-                if (db) {
-                    memoryDB = db;
-                    console.log('Database loaded from file');
-                } else {
-                    createEmptyDatabase();
-                }
-                resolve(memoryDB);
-            })
-            .catch(error => {
-                console.error('Error loading database from file:', error);
-                createEmptyDatabase();
-                resolve(memoryDB);
-            });
-    });
+        await ensureDataDirectoryExists();
+
+        // Try to load from file
+        const db = await loadFromFile();
+
+        if (db) {
+            memoryDB = db;
+            console.log('Database loaded from file');
+        } else {
+            createEmptyDatabase();
+        }
+    } catch (error) {
+        console.error('Error loading database from file:', error);
+        createEmptyDatabase();
+    }
+
+    return memoryDB;
 }
 
 /**
@@ -177,7 +173,23 @@ async function loadFromFile() {
                     return JSON.parse(contents);
                 } else {
                     // Fallback for browsers without File System Access API
-                    // Try to load the default database file using fetch
+                    // First try to load from localStorage
+                    try {
+                        const localData = localStorage.getItem(DB_NAME);
+                        if (localData) {
+                            const data = JSON.parse(localData);
+                            console.log('Database loaded from localStorage');
+                            window.app.showNotification(
+                                'Base de données chargée depuis le stockage local.',
+                                'success'
+                            );
+                            return data;
+                        }
+                    } catch (localError) {
+                        console.error('Error loading database from localStorage:', localError);
+                    }
+
+                    // If localStorage fails, try to load the default database file using fetch
                     try {
                         const response = await fetch(DEFAULT_DB_PATH);
                         if (response.ok) {
@@ -228,7 +240,7 @@ async function loadFromFile() {
 async function saveToDefaultLocation(dbJson) {
     try {
         // Check if the File System Access API is available
-        if ('showOpenFilePicker' in window) {
+        if ('showSaveFilePicker' in window) {
             try {
                 // Get the root directory
                 const root = await navigator.storage.getDirectory();
@@ -324,15 +336,51 @@ async function saveToFile() {
                 console.log('Database saved to new file');
             } else {
                 // Fallback for browsers without File System Access API
-                // Try to save to the default location using a server-side script or other method
-                // For now, we'll just use the export functionality and show a message
-                window.app.showNotification(
-                    'Les données sont sauvegardées automatiquement dans le répertoire "data".',
-                    'info'
-                );
+                // Save to localStorage as a fallback
+                try {
+                    localStorage.setItem(DB_NAME, dbJson);
+                    console.log('Database saved to localStorage');
 
-                // Also trigger the export functionality as a backup
-                exportDatabase();
+                    // Try to save to the server using fetch if available
+                    if (typeof fetch !== 'undefined') {
+                        fetch(`${DATA_DIR}/${DB_FILE_NAME}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: dbJson
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('Database saved to server');
+                            } else {
+                                console.error('Error saving database to server:', response.statusText);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error saving database to server:', error);
+                        });
+                    }
+
+                    window.app.showNotification(
+                        'Les données sont sauvegardées localement.',
+                        'info'
+                    );
+
+                    // Also trigger the export functionality as a backup
+                    exportDatabase();
+                } catch (error) {
+                    console.error('Error saving database to localStorage:', error);
+
+                    // Show a notification and trigger the export functionality
+                    window.app.showNotification(
+                        'Les données sont sauvegardées automatiquement dans le répertoire "data".',
+                        'info'
+                    );
+
+                    // Also trigger the export functionality as a backup
+                    exportDatabase();
+                }
             }
         } catch (error) {
             console.error('Error saving database to file:', error);
@@ -362,35 +410,30 @@ function showStorageError() {
  * @param {Object} item - The item to add
  * @returns {Promise} A promise that resolves with the ID of the added item
  */
-function addItem(storeName, item) {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function addItem(storeName, item) {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        if (!memoryDB[storeName]) {
-            reject(new Error(`Store "${storeName}" does not exist`));
-            return;
-        }
+    if (!memoryDB[storeName]) {
+        throw new Error(`Store "${storeName}" does not exist`);
+    }
 
-        // Generate a unique ID if not provided
-        if (!item.id) {
-            item.id = Date.now().toString(36) + Math.random().toString(36).substr(2);
-        }
+    // Generate a unique ID if not provided
+    if (!item.id) {
+        item.id = Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
 
-        // Check for duplicate ID
-        const existingIndex = memoryDB[storeName].findIndex(i => i.id === item.id);
-        if (existingIndex >= 0) {
-            reject(new Error(`Item with ID "${item.id}" already exists`));
-            return;
-        }
+    // Check for duplicate ID
+    const existingIndex = memoryDB[storeName].findIndex(i => i.id === item.id);
+    if (existingIndex >= 0) {
+        throw new Error(`Item with ID "${item.id}" already exists`);
+    }
 
-        // Add the item
-        memoryDB[storeName].push(item);
-        saveToFile();
-        resolve(item.id);
-    });
+    // Add the item
+    memoryDB[storeName].push(item);
+    await saveToFile();
+    return item.id;
 }
 
 /**
@@ -399,21 +442,17 @@ function addItem(storeName, item) {
  * @param {string} id - The ID of the item
  * @returns {Promise} A promise that resolves with the item
  */
-function getItem(storeName, id) {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function getItem(storeName, id) {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        if (!memoryDB[storeName]) {
-            reject(new Error(`Store "${storeName}" does not exist`));
-            return;
-        }
+    if (!memoryDB[storeName]) {
+        throw new Error(`Store "${storeName}" does not exist`);
+    }
 
-        const item = memoryDB[storeName].find(i => i.id === id);
-        resolve(item || null);
-    });
+    const item = memoryDB[storeName].find(i => i.id === id);
+    return item || null;
 }
 
 /**
@@ -421,20 +460,16 @@ function getItem(storeName, id) {
  * @param {string} storeName - The name of the store
  * @returns {Promise} A promise that resolves with an array of items
  */
-function getAllItems(storeName) {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function getAllItems(storeName) {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        if (!memoryDB[storeName]) {
-            reject(new Error(`Store "${storeName}" does not exist`));
-            return;
-        }
+    if (!memoryDB[storeName]) {
+        throw new Error(`Store "${storeName}" does not exist`);
+    }
 
-        resolve([...memoryDB[storeName]]);
-    });
+    return [...memoryDB[storeName]];
 }
 
 /**
@@ -443,33 +478,26 @@ function getAllItems(storeName) {
  * @param {Object} item - The item to update
  * @returns {Promise} A promise that resolves when the item is updated
  */
-function updateItem(storeName, item) {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function updateItem(storeName, item) {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        if (!memoryDB[storeName]) {
-            reject(new Error(`Store "${storeName}" does not exist`));
-            return;
-        }
+    if (!memoryDB[storeName]) {
+        throw new Error(`Store "${storeName}" does not exist`);
+    }
 
-        if (!item.id) {
-            reject(new Error('Item must have an ID'));
-            return;
-        }
+    if (!item.id) {
+        throw new Error('Item must have an ID');
+    }
 
-        const index = memoryDB[storeName].findIndex(i => i.id === item.id);
-        if (index === -1) {
-            reject(new Error(`Item with ID "${item.id}" not found`));
-            return;
-        }
+    const index = memoryDB[storeName].findIndex(i => i.id === item.id);
+    if (index === -1) {
+        throw new Error(`Item with ID "${item.id}" not found`);
+    }
 
-        memoryDB[storeName][index] = item;
-        saveToFile();
-        resolve();
-    });
+    memoryDB[storeName][index] = item;
+    await saveToFile();
 }
 
 /**
@@ -478,64 +506,55 @@ function updateItem(storeName, item) {
  * @param {string} id - The ID of the item to delete
  * @returns {Promise} A promise that resolves when the item is deleted
  */
-function deleteItem(storeName, id) {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function deleteItem(storeName, id) {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        if (!memoryDB[storeName]) {
-            reject(new Error(`Store "${storeName}" does not exist`));
-            return;
-        }
+    if (!memoryDB[storeName]) {
+        throw new Error(`Store "${storeName}" does not exist`);
+    }
 
-        const index = memoryDB[storeName].findIndex(i => i.id === id);
-        if (index === -1) {
-            reject(new Error(`Item with ID "${id}" not found`));
-            return;
-        }
+    const index = memoryDB[storeName].findIndex(i => i.id === id);
+    if (index === -1) {
+        throw new Error(`Item with ID "${id}" not found`);
+    }
 
-        memoryDB[storeName].splice(index, 1);
-        saveToFile();
-        resolve();
-    });
+    memoryDB[storeName].splice(index, 1);
+    await saveToFile();
 }
 
 /**
  * Export the database to a JSON file
  * @returns {Promise} A promise that resolves with the database JSON
  */
-function exportDatabase() {
-    return new Promise((resolve, reject) => {
-        if (!memoryDB) {
-            reject(new Error('Database not initialized'));
-            return;
-        }
+async function exportDatabase() {
+    if (!memoryDB) {
+        throw new Error('Database not initialized');
+    }
 
-        try {
-            const dbJson = JSON.stringify(memoryDB, null, 2);
-            const blob = new Blob([dbJson], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+    try {
+        const dbJson = JSON.stringify(memoryDB, null, 2);
+        const blob = new Blob([dbJson], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
 
-            // Create a download link and trigger it
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${DB_NAME}_${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(a);
-            a.click();
+        // Create a download link and trigger it
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${DB_NAME}_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
 
-            // Clean up
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 100);
+        // Clean up
+        setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }, 100);
 
-            resolve(dbJson);
-        } catch (error) {
-            reject(error);
-        }
-    });
+        return dbJson;
+    } catch (error) {
+        throw error;
+    }
 }
 
 /**
@@ -543,42 +562,53 @@ function exportDatabase() {
  * @param {File} file - The JSON file to import
  * @returns {Promise} A promise that resolves when the database is imported
  */
-function importDatabase(file) {
-    return new Promise((resolve, reject) => {
-        if (!file) {
-            reject(new Error('No file provided'));
-            return;
+async function importDatabase(file) {
+    if (!file) {
+        throw new Error('No file provided');
+    }
+
+    // Create a promise to handle the FileReader events
+    const readFile = () => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+                resolve(event.target.result);
+            };
+
+            reader.onerror = () => {
+                reject(new Error('Error reading file'));
+            };
+
+            reader.readAsText(file);
+        });
+    };
+
+    try {
+        const dbJson = await readFile();
+        const db = JSON.parse(dbJson);
+
+        // Validate the imported database
+        const isValid = validateImportedDB(db);
+        if (!isValid) {
+            throw new Error('Invalid database format');
         }
 
-        const reader = new FileReader();
+        // Replace the current database
+        memoryDB = db;
 
-        reader.onload = (event) => {
-            try {
-                const dbJson = event.target.result;
-                const db = JSON.parse(dbJson);
+        // Save to localStorage as well in case the File System Access API is not available
+        try {
+            localStorage.setItem(DB_NAME, dbJson);
+            console.log('Imported database saved to localStorage');
+        } catch (localError) {
+            console.error('Error saving imported database to localStorage:', localError);
+        }
 
-                // Validate the imported database
-                const isValid = validateImportedDB(db);
-                if (!isValid) {
-                    reject(new Error('Invalid database format'));
-                    return;
-                }
-
-                // Replace the current database
-                memoryDB = db;
-                saveToFile();
-                resolve();
-            } catch (error) {
-                reject(error);
-            }
-        };
-
-        reader.onerror = () => {
-            reject(new Error('Error reading file'));
-        };
-
-        reader.readAsText(file);
-    });
+        await saveToFile();
+    } catch (error) {
+        throw error;
+    }
 }
 
 /**
@@ -602,10 +632,13 @@ function validateImportedDB(db) {
 }
 
 // Initialize the database when the script loads
-document.addEventListener('DOMContentLoaded', () => {
-    initDatabase()
-        .then(() => console.log('Portable database initialized'))
-        .catch(error => console.error('Failed to initialize portable database:', error));
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        await initDatabase();
+        console.log('Portable database initialized');
+    } catch (error) {
+        console.error('Failed to initialize portable database:', error);
+    }
 });
 
 // Export database functions for use in other modules

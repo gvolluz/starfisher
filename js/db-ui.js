@@ -81,7 +81,7 @@ function createDatabaseUI() {
 /**
  * Handle database save (manual export)
  */
-function handleSaveDB() {
+async function handleSaveDB() {
     if (!window.db || !window.db.export) {
         window.app.showNotification(window.i18n.t('export_unavailable'), 'error');
         return;
@@ -89,21 +89,20 @@ function handleSaveDB() {
 
     window.app.showNotification(window.i18n.t('export_progress'), 'info');
 
-    window.db.export()
-        .then(() => {
-            window.app.showNotification(window.i18n.t('export_success'), 'success');
-        })
-        .catch(error => {
-            console.error('Export error:', error);
-            window.app.showNotification(window.i18n.t('export_error') + ': ' + error.message, 'error');
-        });
+    try {
+        await window.db.export();
+        window.app.showNotification(window.i18n.t('export_success'), 'success');
+    } catch (error) {
+        console.error('Export error:', error);
+        window.app.showNotification(window.i18n.t('export_error') + ': ' + error.message, 'error');
+    }
 }
 
 /**
  * Handle database load (manual import)
  * @param {Event} event - The change event from the file input
  */
-function handleLoadDB(event) {
+async function handleLoadDB(event) {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -114,18 +113,16 @@ function handleLoadDB(event) {
 
     window.app.showNotification(window.i18n.t('import_progress'), 'info');
 
-    window.db.import(file)
-        .then(() => {
-            window.app.showNotification(window.i18n.t('import_success'), 'success');
-            // Reset the file input
-            event.target.value = '';
-        })
-        .catch(error => {
-            console.error('Import error:', error);
-            window.app.showNotification(window.i18n.t('import_error') + ': ' + error.message, 'error');
-            // Reset the file input
-            event.target.value = '';
-        });
+    try {
+        await window.db.import(file);
+        window.app.showNotification(window.i18n.t('import_success'), 'success');
+    } catch (error) {
+        console.error('Import error:', error);
+        window.app.showNotification(window.i18n.t('import_error') + ': ' + error.message, 'error');
+    } finally {
+        // Reset the file input
+        event.target.value = '';
+    }
 }
 
 /**

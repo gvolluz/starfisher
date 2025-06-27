@@ -1,0 +1,25 @@
+Global
+- sauvegarde DB qui fonctionne depuis les PNJs!
+PNJs
+- split les attaques en bouts utiles pour automatiser en combat
+- créer liste pour les immunités
+- ajouter résistances
+PJs
+- ajouter une gestion simplifiée des PJs avec juste le nom
+Combats
+- créer/modifier un combat avec
+ - scénario + scène
+ - ajouter PNJ (possible d'ajouter x fois le même, dans ce cas ajouter A, B, C, D etc.)
+- gérer un combat
+ - ligne d'initiative pour les PJs (cliquer + choisir un PJ et réduire la liste)
+ - déroulement d'initiative: "NEXT" pour avancer dans la colonne et indiquer qui est actif au sommet
+   - aussi possible de faire joli au sommet et déroulant vers la gauche en cercle infini
+ - ajouter les blocs de PVs des PNJs
+ - marquer un PNJ ou un PJ comme mort (sort de l'initiative) (et retour, pour les erreurs, donc 'compte pour l'init' doit être un flag)
+ - sur la page, afficher les détails des PNjs
+   - détails interactifs: cliquer sur une attaque donne le score + les dégâts
+ - afflictions
+  - réductions de CA
+  - réductions d'attaque
+  - autre?
+ - ?

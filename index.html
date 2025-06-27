@@ -11,42 +11,20 @@
         <nav class="main-nav">
             <div class="logo">Starfisher</div>
             <ul class="nav-links">
-                <li><a href="#" class="active" data-page="home" data-i18n="nav_home">Accueil</a></li>
                 <li><a href="#" data-page="npcs" data-i18n="nav_npcs">PNJs</a></li>
-                <li><a href="#" data-page="combats" data-i18n="nav_combats">Combats</a></li>
+                <li><a href="#" class="active" data-page="combats" data-i18n="nav_combats">Combats</a></li>
                 <li><a href="#" data-page="settings" data-i18n="nav_settings">Paramètres</a></li>
             </ul>
         </nav>
     </header>
 
     <main id="app-container">
-        <section id="home" class="page active">
-            <h1 data-i18n="welcome_title">Bienvenue sur Starfisher</h1>
-            <p data-i18n="welcome_subtitle">L'assistant de Maître de Jeu pour Starfinder</p>
-            <div class="features">
-                <div class="feature-card">
-                    <h2 data-i18n="feature_npcs">PNJs</h2>
-                    <p data-i18n="feature_npcs_desc">Consultez et gérez vos PNJs avec toutes les informations nécessaires pour le combat.</p>
-                    <button class="btn" data-page="npcs" data-i18n="button_view">Voir</button>
-                </div>
-                <div class="feature-card">
-                    <h2 data-i18n="feature_combats">Combats</h2>
-                    <p data-i18n="feature_combats_desc">Consultez et gérez vos combats avec les scénarios et les scènes.</p>
-                    <button class="btn" data-page="combats" data-i18n="button_view">Voir</button>
-                </div>
-                <div class="feature-card">
-                    <h2 data-i18n="feature_settings">Paramètres</h2>
-                    <p data-i18n="feature_settings_desc">Configurez l'application et gérez vos données.</p>
-                    <button class="btn" data-page="settings" data-i18n="button_view">Voir</button>
-                </div>
-            </div>
-        </section>
-
         <section id="npcs" class="page">
             <h1 data-i18n="nav_npcs">PNJs</h1>
             <div class="list-container">
                 <div class="list-header">
                     <h2 data-i18n="recent_npcs">PNJs récents</h2>
+                    <button id="add-npc-btn" class="btn" data-i18n="add_npc">Ajouter un PNJ</button>
                 </div>
                 <div class="list-items" id="npcs-list">
                     <!-- NPC items will be added here dynamically -->
@@ -57,7 +35,7 @@
             </div>
         </section>
 
-        <section id="combats" class="page">
+        <section id="combats" class="page active">
             <h1 data-i18n="nav_combats">Combats</h1>
             <div class="list-container">
                 <div class="list-header">
@@ -92,6 +70,8 @@
     <script src="js/portable-db.js"></script>
     <script src="js/db-ui.js"></script>
     <script src="js/dice-roller.js"></script>
+    <script src="js/npc-ui.js"></script>
+    <script src="js/combat-ui.js"></script>
     <script src="js/list-ui.js"></script>
     <script src="js/main.js"></script>
 
