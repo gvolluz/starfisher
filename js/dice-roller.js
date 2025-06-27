@@ -26,26 +26,20 @@ function createDiceRollerElements() {
     // Create the main container
     const diceRoller = document.createElement('div');
     diceRoller.id = 'dice-roller';
-    diceRoller.className = 'dice-roller closed';
+    diceRoller.className = 'dice-roller closed right-positioned'; // Add right-positioned class by default
 
     // Create the toggle button (D20 shape)
     const toggleButton = document.createElement('div');
     toggleButton.className = 'dice-toggle';
     toggleButton.innerHTML = `
         <div class="dice d20">
-            <span>D20</span>
+            <span data-i18n="dice_toggle">${window.i18n ? window.i18n.t('dice_toggle') : 'Dés'}</span>
         </div>
     `;
 
     // Create the dice panel
     const dicePanel = document.createElement('div');
     dicePanel.className = 'dice-panel';
-
-    // Add close button
-    const closeButton = document.createElement('span');
-    closeButton.className = 'dice-close';
-    closeButton.innerHTML = '&times;';
-    dicePanel.appendChild(closeButton);
 
     // Create dice buttons
     const diceTypes = [4, 6, 8, 10, 12, 20, 100];
@@ -108,7 +102,6 @@ function createDiceRollerElements() {
 function setupDiceRollerEvents() {
     const diceRoller = document.getElementById('dice-roller');
     const toggleButton = diceRoller.querySelector('.dice-toggle');
-    const closeButton = diceRoller.querySelector('.dice-close');
     const diceButtons = diceRoller.querySelectorAll('.dice-button');
     const resetButtons = diceRoller.querySelectorAll('.dice-reset');
     const rollButton = diceRoller.querySelector('.dice-roll-btn');
@@ -121,11 +114,6 @@ function setupDiceRollerEvents() {
         if (!diceRoller.classList.contains('closed')) {
             resetAllCounters();
         }
-    });
-
-    // Close button
-    closeButton.addEventListener('click', () => {
-        diceRoller.classList.add('closed');
     });
 
     // Dice buttons (increment counters)
@@ -169,9 +157,15 @@ function setupDiceRollerEvents() {
         // Update roll button text
         rollButton.textContent = window.i18n.t('roll_button');
 
+        // Update toggle button text
+        const toggleText = toggleButton.querySelector('[data-i18n="dice_toggle"]');
+        if (toggleText) {
+            toggleText.textContent = window.i18n.t('dice_toggle');
+        }
+
         // Update results if visible
         const resultsArea = diceRoller.querySelector('.dice-results');
-        if (resultsArea && resultsArea.innerHTML) {
+        if (resultsArea && resultsArea.classList.contains('visible')) {
             // Re-roll to update the results text
             rollDice();
         }
@@ -201,6 +195,7 @@ function resetAllCounters() {
     // Clear results
     const resultsArea = document.querySelector('.dice-results');
     resultsArea.innerHTML = '';
+    resultsArea.classList.remove('visible');
 }
 
 /**
@@ -212,6 +207,7 @@ function rollDice() {
 
     // Clear previous results
     resultsArea.innerHTML = '';
+    resultsArea.classList.remove('visible');
 
     let totalRolls = 0;
     let totalResult = 0;
@@ -261,15 +257,32 @@ function rollDice() {
         resultHTML += `<div class="dice-result-total" data-i18n-prefix="dice_total">${totalLabel}: ${totalResult}</div>`;
 
         resultsArea.innerHTML = resultHTML;
+        resultsArea.classList.add('visible');
     }
 }
 
 /**
- * Roll a single die
+ * Roll a single die with improved randomness using Crypto API
  * @param {number} sides - Number of sides on the die
  * @returns {number} The result of the roll
  */
 function rollDie(sides) {
+    // Use Crypto API for better randomness if available
+    if (window.crypto && window.crypto.getRandomValues) {
+        // Create a new Uint32Array with one element
+        const randomBuffer = new Uint32Array(1);
+
+        // Fill the array with a random value
+        window.crypto.getRandomValues(randomBuffer);
+
+        // Get a random number between 0 and 1 with better distribution
+        const randomValue = randomBuffer[0] / (0xFFFFFFFF + 1);
+
+        // Scale to the number of sides and add 1
+        return Math.floor(randomValue * sides) + 1;
+    } 
+
+    // Fallback to Math.random() if Crypto API is not available
     return Math.floor(Math.random() * sides) + 1;
 }
 
@@ -303,11 +316,40 @@ function makeDraggable(element, handle) {
         // Set the element's new position
         element.style.top = (element.offsetTop - pos2) + "px";
         element.style.left = (element.offsetLeft - pos1) + "px";
+
+        // Update positioning class based on position
+        updatePositioningClass(element);
     }
 
     function closeDragElement() {
         // Stop moving when mouse button is released
         document.onmouseup = null;
         document.onmousemove = null;
+
+        // Update positioning class after drag ends
+        updatePositioningClass(element);
+    }
+
+    // Initial positioning class update
+    updatePositioningClass(element);
+}
+
+/**
+ * Update the positioning class of the dice-roller based on its position on the screen
+ * @param {HTMLElement} element - The dice-roller element
+ */
+function updatePositioningClass(element) {
+    const windowWidth = window.innerWidth;
+    const elementRect = element.getBoundingClientRect();
+    const elementCenterX = elementRect.left + elementRect.width / 2;
+
+    // If the element is on the left half of the screen, add left-positioned class
+    // Otherwise, add right-positioned class
+    if (elementCenterX < windowWidth / 2) {
+        element.classList.remove('right-positioned');
+        element.classList.add('left-positioned');
+    } else {
+        element.classList.remove('left-positioned');
+        element.classList.add('right-positioned');
     }
 }
