@@ -415,6 +415,109 @@ footer {
     color: var(--primary-color);
 }
 
+/* List and Details Components */
+.list-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--light-bg);
+    padding-bottom: 0.5rem;
+}
+
+.list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: var(--light-bg);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.list-item:hover {
+    background-color: #e8e8e8;
+    transform: translateY(-2px);
+}
+
+.list-item.active {
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.list-item-info {
+    display: flex;
+    gap: 1rem;
+}
+
+.list-item-info span {
+    display: inline-block;
+    min-width: 100px;
+}
+
+.details-container {
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: none;
+}
+
+.details-container.visible {
+    display: block;
+}
+
+.details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--light-bg);
+    padding-bottom: 0.5rem;
+}
+
+.details-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.details-section {
+    margin-bottom: 1rem;
+}
+
+.details-section h3 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.details-section p {
+    margin-bottom: 0.5rem;
+}
+
+.details-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .main-nav {
