@@ -63,12 +63,10 @@ function forceCreateLanguageSwitcher() {
         languageSwitcher.style.right = '20px';
         languageSwitcher.style.zIndex = '1000';
 
-        // Create a simple button for each language
+        // Create a simple button for each available language (only en and fr exist)
         const languages = [
             { code: 'fr', name: 'Français', country: 'fr' },
-            { code: 'en', name: 'English', country: 'gb' },
-            { code: 'es', name: 'Español', country: 'es' },
-            { code: 'de', name: 'Deutsch', country: 'de' }
+            { code: 'en', name: 'English', country: 'gb' }
         ];
 
         languages.forEach(lang => {
@@ -245,7 +243,7 @@ function updateLanguageSwitcher(container, languages) {
     currentFlag.className = 'flag';
 
     const currentFlagImg = document.createElement('img');
-    currentFlagImg.src = `https://flagcdn.com/16x12/${currentLangObj.country.toLowerCase()}.png`;
+    currentFlagImg.src = `https://flagcdn.com/16x12/${currentLangObj.country ? currentLangObj.country.toLowerCase() : currentLangObj.code.toLowerCase()}.png`;
     currentFlagImg.alt = currentLangObj.code;
     currentFlagImg.width = 16;
     currentFlagImg.height = 12;
@@ -282,7 +280,7 @@ function updateLanguageSwitcher(container, languages) {
         flag.className = 'flag';
 
         const flagImg = document.createElement('img');
-        flagImg.src = `https://flagcdn.com/16x12/${lang.country.toLowerCase()}.png`;
+        flagImg.src = `https://flagcdn.com/16x12/${lang.country ? lang.country.toLowerCase() : lang.code.toLowerCase()}.png`;
         flagImg.alt = lang.code;
         flagImg.width = 16;
         flagImg.height = 12;
@@ -448,7 +446,7 @@ function updateActiveLanguage() {
 
             const flagImg = dropdownButton.querySelector('.flag img');
             if (flagImg) {
-                flagImg.src = `https://flagcdn.com/16x12/${currentLangObj.country.toLowerCase()}.png`;
+                flagImg.src = `https://flagcdn.com/16x12/${currentLangObj.country ? currentLangObj.country.toLowerCase() : currentLangObj.code.toLowerCase()}.png`;
                 flagImg.alt = currentLangObj.code;
                 console.log('Flag image updated');
             } else {

@@ -6,6 +6,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize the application
     initNavigation();
+
+    // Note: abilities UI is now initialized in abilities-ui.js
 });
 
 /**
@@ -15,15 +17,16 @@ function initNavigation() {
     // Get all navigation links and page elements
     const navLinks = document.querySelectorAll('.nav-links a, .btn[data-page]');
     const pages = document.querySelectorAll('.page');
-    
+
     // Add click event listeners to all navigation links
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             // Get the target page from the data-page attribute
             const targetPageId = link.getAttribute('data-page');
-            
+            console.log('Navigation: clicked on link for page', targetPageId);
+
             // Update active navigation link
             document.querySelectorAll('.nav-links a').forEach(navLink => {
                 navLink.classList.remove('active');
@@ -31,14 +34,23 @@ function initNavigation() {
                     navLink.classList.add('active');
                 }
             });
-            
+
             // Hide all pages and show the target page
             pages.forEach(page => {
                 page.classList.remove('active');
                 if (page.id === targetPageId) {
                     page.classList.add('active');
+                    console.log(`Navigation: page ${page.id} is now active`);
                 }
             });
+
+            // Verify that the target page is now active
+            const targetPage = document.getElementById(targetPageId);
+            if (targetPage) {
+                console.log(`Navigation: target page ${targetPageId} exists and is ${targetPage.classList.contains('active') ? 'active' : 'not active'}`);
+            } else {
+                console.error(`Navigation: target page ${targetPageId} not found`);
+            }
         });
     });
 }
@@ -53,7 +65,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
-    
+
     // Add close button
     const closeBtn = document.createElement('span');
     closeBtn.className = 'close-notification';
@@ -62,10 +74,10 @@ function showNotification(message, type = 'info') {
         notification.remove();
     });
     notification.appendChild(closeBtn);
-    
+
     // Add to document
     document.body.appendChild(notification);
-    
+
     // Auto-remove after 5 seconds
     setTimeout(() => {
         notification.remove();

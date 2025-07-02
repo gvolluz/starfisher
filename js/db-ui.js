@@ -1,144 +1,135 @@
 /**
  * Starfisher - Database UI Module
- * Provides UI components for database file management functionality
+ * Provides UI components for database settings
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Create database management UI
-    createDatabaseUI();
+    // Create API settings UI if using API database
+    if (window.db && window.db.getApiPort) {
+        createApiSettingsUI();
+    }
 });
 
+
 /**
- * Create the database management UI
+ * Create the API settings UI
  */
-function createDatabaseUI() {
-    // Create the database management section
-    const dbSection = document.createElement('div');
-    dbSection.className = 'db-management';
+function createApiSettingsUI() {
+    // Create the API settings section
+    const settingsContainer = document.getElementById('settings-content');
+    if (!settingsContainer) return;
 
-    // Create export button
-    const exportBtn = document.createElement('button');
-    exportBtn.className = 'btn db-btn';
-    exportBtn.textContent = window.i18n.t('export_db');
-    exportBtn.setAttribute('data-i18n', 'export_db');
-    exportBtn.addEventListener('click', handleSaveDB);
+    // Check if the section already exists
+    if (document.getElementById('api-settings-section')) return;
 
-    // Create import container (button + file input)
-    const importContainer = document.createElement('div');
-    importContainer.className = 'import-container';
+    // Create the section
+    const apiSection = document.createElement('div');
+    apiSection.className = 'settings-section';
+    apiSection.id = 'api-settings-section';
 
-    const importBtn = document.createElement('button');
-    importBtn.className = 'btn db-btn';
-    importBtn.textContent = window.i18n.t('import_db');
-    importBtn.setAttribute('data-i18n', 'import_db');
+    // Create the section header
+    const apiHeader = document.createElement('h2');
+    apiHeader.textContent = 'API Backend';
+    apiSection.appendChild(apiHeader);
 
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.id = 'db-import';
-    fileInput.accept = '.json';
-    fileInput.style.display = 'none';
-    fileInput.addEventListener('change', handleLoadDB);
+    // Create the form
+    const apiForm = document.createElement('div');
+    apiForm.className = 'api-form';
 
-    importBtn.addEventListener('click', () => fileInput.click());
+    // Create port input
+    const portLabel = document.createElement('label');
+    portLabel.htmlFor = 'api-port';
+    portLabel.textContent = 'Port:';
 
-    importContainer.appendChild(importBtn);
-    importContainer.appendChild(fileInput);
+    const portInput = document.createElement('input');
+    portInput.type = 'number';
+    portInput.id = 'api-port';
+    portInput.min = '1';
+    portInput.max = '65535';
+    portInput.value = window.db.getApiPort();
 
-    // Add info text about automatic saving
-    const infoText = document.createElement('div');
-    infoText.className = 'db-info';
-    infoText.textContent = window.i18n.t('db_auto_save');
-    infoText.setAttribute('data-i18n', 'db_auto_save');
+    // Create save button
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn db-btn';
+    saveBtn.textContent = 'Save';
+    saveBtn.addEventListener('click', () => {
+        const port = parseInt(portInput.value, 10);
+        if (port >= 1 && port <= 65535) {
+            window.db.setApiPort(port);
+            window.db.clearCache(); // Clear cache when changing port
+            window.app.showNotification('API port updated. Reconnecting...', 'info');
 
-    // Add buttons and info text to the section
-    dbSection.appendChild(exportBtn);
-    dbSection.appendChild(importContainer);
-    dbSection.appendChild(infoText);
-
-    // Listen for language changes to update the text
-    document.addEventListener('languageChanged', () => {
-        exportBtn.textContent = window.i18n.t('export_db');
-        importBtn.textContent = window.i18n.t('import_db');
-        infoText.textContent = window.i18n.t('db_auto_save');
+            // Test connection with new port
+            window.db.init().then(success => {
+                if (success) {
+                    window.app.showNotification('Connected to API on port ' + port, 'success');
+                } else {
+                    window.app.showNotification('Failed to connect to API on port ' + port, 'error');
+                }
+            });
+        } else {
+            window.app.showNotification('Invalid port number. Please enter a number between 1 and 65535.', 'error');
+        }
     });
 
-    // Add the section to the settings page
-    const dbContainer = document.getElementById('db-management-container');
-    if (dbContainer) {
-        dbContainer.appendChild(dbSection);
-    } else {
-        // Fallback to footer if settings page is not available
-        const footer = document.querySelector('footer');
-        if (footer) {
-            footer.insertBefore(dbSection, footer.firstChild);
+    // Create status indicator
+    const statusContainer = document.createElement('div');
+    statusContainer.className = 'api-status';
+
+    const statusLabel = document.createElement('span');
+    statusLabel.textContent = 'Status: ';
+
+    const statusIndicator = document.createElement('span');
+    statusIndicator.id = 'api-status-indicator';
+    statusIndicator.textContent = 'Checking...';
+
+    statusContainer.appendChild(statusLabel);
+    statusContainer.appendChild(statusIndicator);
+
+    // Add elements to the form
+    apiForm.appendChild(portLabel);
+    apiForm.appendChild(portInput);
+    apiForm.appendChild(saveBtn);
+    apiForm.appendChild(statusContainer);
+
+    // Add form to the section
+    apiSection.appendChild(apiForm);
+
+    // Add the section to the settings container
+    settingsContainer.appendChild(apiSection);
+
+    // Check API connection status
+    window.db.init().then(success => {
+        const indicator = document.getElementById('api-status-indicator');
+        if (indicator) {
+            if (success) {
+                indicator.textContent = 'Connected';
+                indicator.className = 'status-connected';
+            } else {
+                indicator.textContent = 'Disconnected';
+                indicator.className = 'status-disconnected';
+            }
         }
-    }
+    });
 
-    // Add styles
-    addStyles();
+    // Update styles
+    updateStyles();
 }
 
-/**
- * Handle database save (manual export)
- */
-async function handleSaveDB() {
-    if (!window.db || !window.db.export) {
-        window.app.showNotification(window.i18n.t('export_unavailable'), 'error');
-        return;
-    }
-
-    window.app.showNotification(window.i18n.t('export_progress'), 'info');
-
-    try {
-        await window.db.export();
-        window.app.showNotification(window.i18n.t('export_success'), 'success');
-    } catch (error) {
-        console.error('Export error:', error);
-        window.app.showNotification(window.i18n.t('export_error') + ': ' + error.message, 'error');
-    }
-}
 
 /**
- * Handle database load (manual import)
- * @param {Event} event - The change event from the file input
+ * Update styles for all UI components
  */
-async function handleLoadDB(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!window.db || !window.db.import) {
-        window.app.showNotification(window.i18n.t('import_unavailable'), 'error');
-        return;
+function updateStyles() {
+    // Remove existing style if it exists
+    const existingStyle = document.getElementById('db-ui-styles');
+    if (existingStyle) {
+        existingStyle.remove();
     }
 
-    window.app.showNotification(window.i18n.t('import_progress'), 'info');
-
-    try {
-        await window.db.import(file);
-        window.app.showNotification(window.i18n.t('import_success'), 'success');
-    } catch (error) {
-        console.error('Import error:', error);
-        window.app.showNotification(window.i18n.t('import_error') + ': ' + error.message, 'error');
-    } finally {
-        // Reset the file input
-        event.target.value = '';
-    }
-}
-
-/**
- * Add styles for the database management UI
- */
-function addStyles() {
     const style = document.createElement('style');
+    style.id = 'db-ui-styles';
     style.textContent = `
-        .db-management {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
-
         .settings-section {
             margin-bottom: 2rem;
             background-color: var(--card-bg);
@@ -162,23 +153,49 @@ function addStyles() {
             background-color: var(--secondary-color);
         }
 
-        .import-container {
-            position: relative;
+        .api-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .db-info {
+        .api-form label {
+            font-weight: bold;
+        }
+
+        .api-form input {
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 100px;
+        }
+
+        .api-status {
             width: 100%;
-            text-align: center;
-            margin-top: 0.5rem;
+            margin-top: 1rem;
             font-size: 0.9rem;
-            color: #666;
-            font-style: italic;
+        }
+
+        .status-connected {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-disconnected {
+            color: red;
+            font-weight: bold;
         }
 
         @media (max-width: 768px) {
-            .db-management {
+            .api-form {
                 flex-direction: column;
-                align-items: center;
+                align-items: flex-start;
+            }
+
+            .api-form input {
+                width: 100%;
             }
         }
     `;

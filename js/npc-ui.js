@@ -3,6 +3,385 @@
  * Provides UI components for displaying and interacting with NPCs
  */
 
+// Global variables
+let allAbilities = [];
+let selectedAbilities = [];
+
+/**
+ * Fetch all abilities from the database
+ * @returns {Promise<Array>} A promise that resolves with an array of abilities
+ */
+async function fetchAbilities() {
+    try {
+        // Get all abilities from the database
+        const abilities = await window.db.getAll('abilities');
+        allAbilities = abilities;
+        return abilities;
+    } catch (error) {
+        console.error('Error fetching abilities:', error);
+        return [];
+    }
+}
+
+/**
+ * Create the abilities multiselect UI
+ * @param {Array} selectedAbilityIds - Array of selected ability IDs
+ * @param {boolean} readonly - Whether the UI should be readonly
+ * @returns {HTMLElement} The abilities multiselect container
+ */
+function createAbilitiesMultiselect(selectedAbilityIds = [], readonly = true) {
+    // Create the container
+    const container = document.createElement('div');
+    container.className = 'abilities-multiselect';
+    container.id = 'abilities-multiselect';
+
+    // Create the selected abilities list
+    const selectedList = document.createElement('div');
+    selectedList.className = 'selected-abilities';
+
+    // Reset the global selectedAbilities array
+    selectedAbilities = [];
+
+    // Add selected abilities to the list
+    if (selectedAbilityIds && selectedAbilityIds.length > 0) {
+        selectedAbilityIds.forEach(abilityId => {
+            const ability = allAbilities.find(a => a.id === abilityId);
+            if (ability) {
+                selectedAbilities.push(ability);
+                const abilityElement = createAbilityElement(ability, readonly);
+                selectedList.appendChild(abilityElement);
+            }
+        });
+    }
+
+    container.appendChild(selectedList);
+
+    // Add button to add new abilities (only in edit mode)
+    if (!readonly) {
+        const addButton = document.createElement('button');
+        addButton.className = 'btn btn-small add-ability-btn';
+        addButton.textContent = '➕';
+        addButton.title = 'Ajouter une capacité';
+        addButton.addEventListener('click', showAbilitySelector);
+        container.appendChild(addButton);
+    }
+
+    return container;
+}
+
+/**
+ * Create an element for a selected ability
+ * @param {Object} ability - The ability object
+ * @param {boolean} readonly - Whether the UI should be readonly
+ * @returns {HTMLElement} The ability element
+ */
+function createAbilityElement(ability, readonly = true) {
+    const element = document.createElement('div');
+    element.className = 'ability-item';
+    element.setAttribute('data-id', ability.id);
+
+    // Create the ability name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'ability-name';
+    nameSpan.textContent = ability.name;
+    element.appendChild(nameSpan);
+
+    // Create the info button
+    const infoButton = document.createElement('button');
+    infoButton.className = 'btn btn-small info-ability-btn';
+    infoButton.textContent = '❓';
+    infoButton.title = 'Voir les détails';
+    infoButton.addEventListener('click', () => showAbilityDetails(ability));
+    element.appendChild(infoButton);
+
+    // Create the remove button (only in edit mode)
+    if (!readonly) {
+        const removeButton = document.createElement('button');
+        removeButton.className = 'btn btn-small remove-ability-btn';
+        removeButton.textContent = '✖';
+        removeButton.title = 'Retirer';
+        removeButton.addEventListener('click', () => removeAbility(ability.id));
+        element.appendChild(removeButton);
+    }
+
+    return element;
+}
+
+/**
+ * Show the ability selector popup
+ */
+function showAbilitySelector() {
+    // Create the popup container
+    const popup = document.createElement('div');
+    popup.className = 'ability-selector-popup';
+
+    // Create the popup content
+    const content = document.createElement('div');
+    content.className = 'ability-selector-content';
+
+    // Create the header
+    const header = document.createElement('div');
+    header.className = 'ability-selector-header';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Sélectionner une capacité';
+    header.appendChild(title);
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'btn btn-small close-popup-btn';
+    closeButton.textContent = '✖';
+    closeButton.addEventListener('click', () => document.body.removeChild(popup));
+    header.appendChild(closeButton);
+
+    content.appendChild(header);
+
+    // Create the abilities list
+    const abilitiesList = document.createElement('div');
+    abilitiesList.className = 'abilities-list';
+
+    // Add each ability to the list
+    allAbilities.forEach(ability => {
+        // Skip if already selected
+        if (selectedAbilities.some(a => a.id === ability.id)) {
+            return;
+        }
+
+        const abilityItem = document.createElement('div');
+        abilityItem.className = 'ability-selector-item';
+        abilityItem.setAttribute('data-id', ability.id);
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'ability-selector-name';
+        nameSpan.textContent = `${ability.name} (${ability.type})`;
+        abilityItem.appendChild(nameSpan);
+
+        const infoButton = document.createElement('button');
+        infoButton.className = 'btn btn-small info-ability-btn';
+        infoButton.textContent = '❓';
+        infoButton.title = 'Voir les détails';
+        infoButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            showAbilityDetails(ability);
+        });
+        abilityItem.appendChild(infoButton);
+
+        // Add click event to select the ability
+        abilityItem.addEventListener('click', () => {
+            addAbility(ability);
+            document.body.removeChild(popup);
+        });
+
+        abilitiesList.appendChild(abilityItem);
+    });
+
+    content.appendChild(abilitiesList);
+    popup.appendChild(content);
+
+    // Add the popup to the body
+    document.body.appendChild(popup);
+}
+
+/**
+ * Show the ability details popup
+ * @param {Object} ability - The ability object
+ */
+function showAbilityDetails(ability) {
+    // Create the popup container
+    const popup = document.createElement('div');
+    popup.className = 'ability-details-popup';
+
+    // Create the popup content
+    const content = document.createElement('div');
+    content.className = 'ability-details-content';
+
+    // Create the header
+    const header = document.createElement('div');
+    header.className = 'ability-details-header';
+
+    const title = document.createElement('h3');
+    title.textContent = `${ability.name} (${ability.type})`;
+    header.appendChild(title);
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'btn btn-small close-popup-btn';
+    closeButton.textContent = '✖';
+    closeButton.addEventListener('click', () => document.body.removeChild(popup));
+    header.appendChild(closeButton);
+
+    content.appendChild(header);
+
+    // Create the ability details
+    const details = document.createElement('div');
+    details.className = 'ability-details';
+    details.textContent = ability.text;
+    content.appendChild(details);
+
+    popup.appendChild(content);
+
+    // Add the popup to the body
+    document.body.appendChild(popup);
+}
+
+/**
+ * Add an ability to the selected abilities
+ * @param {Object} ability - The ability object
+ */
+function addAbility(ability) {
+    // Add to the global selectedAbilities array
+    selectedAbilities.push(ability);
+
+    // Add to the UI
+    const selectedList = document.querySelector('.selected-abilities');
+    if (selectedList) {
+        const abilityElement = createAbilityElement(ability, false);
+        selectedList.appendChild(abilityElement);
+    }
+}
+
+/**
+ * Remove an ability from the selected abilities
+ * @param {string} abilityId - The ID of the ability to remove
+ */
+function removeAbility(abilityId) {
+    // Remove from the global selectedAbilities array
+    selectedAbilities = selectedAbilities.filter(a => a.id !== abilityId);
+
+    // Remove from the UI
+    const abilityElement = document.querySelector(`.ability-item[data-id="${abilityId}"]`);
+    if (abilityElement) {
+        abilityElement.remove();
+    }
+}
+
+/**
+ * Add CSS styles for the abilities UI
+ */
+function addAbilitiesStyles() {
+    // Check if styles already exist
+    if (document.getElementById('abilities-styles')) {
+        return;
+    }
+
+    // Create style element
+    const style = document.createElement('style');
+    style.id = 'abilities-styles';
+    style.textContent = `
+        /* Abilities Multiselect */
+        .abilities-multiselect {
+            width: 100%;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 8px;
+            min-height: 40px;
+            background-color: #fff;
+            position: relative;
+        }
+
+        .selected-abilities {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .ability-item {
+            display: flex;
+            align-items: center;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            margin-bottom: 4px;
+        }
+
+        .ability-name {
+            margin-right: 8px;
+        }
+
+        .info-ability-btn, .remove-ability-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            margin-left: 4px;
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .add-ability-btn {
+            margin-top: 8px;
+        }
+
+        /* Ability Selector Popup */
+        .ability-selector-popup, .ability-details-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .ability-selector-content, .ability-details-content {
+            background-color: #fff;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80%;
+            overflow: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .ability-selector-header, .ability-details-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ability-selector-header h3, .ability-details-header h3 {
+            margin: 0;
+        }
+
+        .close-popup-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            font-size: 12px;
+            line-height: 1;
+        }
+
+        .abilities-list {
+            padding: 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ability-selector-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .ability-selector-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .ability-details {
+            padding: 16px;
+            line-height: 1.5;
+        }
+    `;
+
+    // Add style to document
+    document.head.appendChild(style);
+}
+
 /**
  * Initialize the NPCs list
  */
@@ -11,6 +390,12 @@ async function initNpcsList() {
     if (!npcsListElement) return;
 
     try {
+        // Fetch abilities first
+        await fetchAbilities();
+
+        // Add abilities styles
+        addAbilitiesStyles();
+
         // Get all NPCs from the database
         const npcs = await window.db.getAll('npcs');
 
@@ -179,11 +564,11 @@ function showNpcDetails(npc) {
                 </div>
             </div>
 
-            <!-- Fourth line: immunités -->
+            <!-- Fourth line: abilities -->
             <div class="npc-detail-row">
-                <div class="npc-immunities-container">
-                    <label for="npc-immunities">${window.i18n.t('npc_immunities')}</label>
-                    <input type="text" id="npc-immunities" value="${npc.immunities || ''}" readonly>
+                <div class="npc-abilities-container">
+                    <label>${window.i18n.t('npc_abilities')}</label>
+                    <div id="npc-abilities-container"></div>
                 </div>
             </div>
 
@@ -221,6 +606,14 @@ function showNpcDetails(npc) {
     // Set the HTML and show the container
     detailsContainer.innerHTML = detailsHTML;
     detailsContainer.classList.add('visible');
+
+    // Populate the abilities container
+    const abilitiesContainer = document.getElementById('npc-abilities-container');
+    if (abilitiesContainer) {
+        const selectedAbilityIds = npc.abilities || [];
+        const abilitiesMultiselect = createAbilitiesMultiselect(selectedAbilityIds, true);
+        abilitiesContainer.appendChild(abilitiesMultiselect);
+    }
 
     // Add event listener for the edit button
     const editBtn = document.getElementById('edit-npc-btn');
@@ -347,6 +740,20 @@ function toggleNpcEditMode(editMode) {
             button.addEventListener('click', removeAttack);
         });
     }
+
+    // Update abilities multiselect
+    const abilitiesContainer = document.getElementById('npc-abilities-container');
+    if (abilitiesContainer) {
+        // Get the current selected ability IDs
+        const selectedAbilityIds = selectedAbilities.map(ability => ability.id);
+
+        // Clear the container
+        abilitiesContainer.innerHTML = '';
+
+        // Create a new multiselect with the appropriate mode
+        const abilitiesMultiselect = createAbilitiesMultiselect(selectedAbilityIds, !editMode);
+        abilitiesContainer.appendChild(abilitiesMultiselect);
+    }
 }
 
 /**
@@ -448,8 +855,10 @@ async function saveNpcEdit() {
     const ref = document.getElementById('npc-ref').value;
     const vig = document.getElementById('npc-vig').value;
     const vol = document.getElementById('npc-vol').value;
-    const immunities = document.getElementById('npc-immunities').value;
     const details = document.getElementById('npc-details').value;
+
+    // Get the selected abilities
+    const abilities = selectedAbilities.map(ability => ability.id);
 
     // Validate required fields
     if (!name) {
@@ -493,7 +902,7 @@ async function saveNpcEdit() {
         ref,
         vig,
         vol,
-        immunities,
+        abilities,
         attacks,
         details,
         updatedAt: Date.now()
@@ -586,11 +995,11 @@ function showAddNpcForm() {
                 </div>
             </div>
 
-            <!-- Fourth line: immunités -->
+            <!-- Fourth line: abilities -->
             <div class="npc-detail-row">
-                <div class="npc-immunities-container">
-                    <label for="npc-immunities">${window.i18n.t('npc_immunities')}</label>
-                    <input type="text" id="npc-immunities">
+                <div class="npc-abilities-container">
+                    <label>${window.i18n.t('npc_abilities')}</label>
+                    <div id="npc-abilities-container"></div>
                 </div>
             </div>
 
@@ -629,6 +1038,17 @@ function showAddNpcForm() {
     detailsContainer.innerHTML = formHTML;
     detailsContainer.classList.add('visible');
 
+    // Populate the abilities container
+    const abilitiesContainer = document.getElementById('npc-abilities-container');
+    if (abilitiesContainer) {
+        // Reset the global selectedAbilities array
+        selectedAbilities = [];
+
+        // Create a new multiselect in edit mode
+        const abilitiesMultiselect = createAbilitiesMultiselect([], false);
+        abilitiesContainer.appendChild(abilitiesMultiselect);
+    }
+
     // Add event listeners for the save and cancel buttons
     const saveBtn = document.getElementById('save-npc-btn');
     const cancelBtn = document.getElementById('cancel-npc-btn');
@@ -666,8 +1086,10 @@ async function saveNpc() {
     const ref = document.getElementById('npc-ref').value;
     const vig = document.getElementById('npc-vig').value;
     const vol = document.getElementById('npc-vol').value;
-    const immunities = document.getElementById('npc-immunities').value;
     const details = document.getElementById('npc-details').value;
+
+    // Get the selected abilities
+    const abilities = selectedAbilities.map(ability => ability.id);
 
     // Validate required fields
     if (!name) {
@@ -688,7 +1110,7 @@ async function saveNpc() {
         ref,
         vig,
         vol,
-        immunities,
+        abilities,
         details,
         createdAt: Date.now()
     };

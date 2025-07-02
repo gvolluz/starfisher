@@ -1,0 +1,4 @@
+{
+  "port": 65345,
+  "dbPath": "./data/nedb"
+}

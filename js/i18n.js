@@ -157,6 +157,12 @@ async function loadTranslations(lang) {
  */
 async function discoverLanguageFiles() {
     try {
+        // Skip directory listing attempt as it often fails with 404
+        // Go straight to detecting languages by loading known files
+        console.log('Skipping directory listing, detecting languages by loading known files');
+        return detectLanguagesByLoading();
+
+        /* Original code commented out:
         // Fetch the list of files in the i18n directory
         const response = await fetch('i18n/');
 
@@ -165,7 +171,9 @@ async function discoverLanguageFiles() {
             console.log('Directory listing not available, trying to detect languages by loading known files');
             return detectLanguagesByLoading();
         }
+        */
 
+        /* Original code commented out:
         const html = await response.text();
 
         // Parse the HTML to extract filenames
@@ -188,6 +196,7 @@ async function discoverLanguageFiles() {
 
         console.log('Discovered language files:', langCodes);
         return langCodes;
+        */
     } catch (error) {
         console.error('Error discovering language files:', error);
         return detectLanguagesByLoading();
@@ -199,12 +208,12 @@ async function discoverLanguageFiles() {
  * @returns {Promise} A promise that resolves with an array of language codes
  */
 async function detectLanguagesByLoading() {
-    // List of common language codes to try
-    const commonLangs = Object.keys(defaultLanguageNames);
+    // Only try to load the languages we know exist (en and fr)
+    const knownLangs = ['en', 'fr'];
     const detectedLangs = [];
 
-    // Try to load each language file
-    for (const lang of commonLangs) {
+    // Try to load each known language file
+    for (const lang of knownLangs) {
         try {
             const response = await fetch(`i18n/${lang}.json`, { method: 'HEAD' });
             if (response.ok) {
@@ -212,7 +221,7 @@ async function detectLanguagesByLoading() {
                 languageFiles[lang] = `i18n/${lang}.json`;
             }
         } catch (error) {
-            // Ignore errors, just means the file doesn't exist
+            console.error(`Error checking language file for ${lang}:`, error);
         }
     }
 
