@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Add event listener for the "Add NPC" button
             const addNpcBtn = document.getElementById('add-npc-btn');
             if (addNpcBtn && window.npcUI && window.npcUI.showAddNpcForm) {
-                addNpcBtn.addEventListener('click', window.npcUI.showAddNpcForm);
+                addNpcBtn.addEventListener('click', async () => await window.npcUI.showAddNpcForm());
             }
         } catch (error) {
             console.error('Error initializing database:', error);

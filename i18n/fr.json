@@ -34,6 +34,7 @@
   "npc_vig": "Vig",
   "npc_vol": "Vol",
   "npc_immunities": "Immunités",
+  "npc_abilities": "Capacités",
   "npc_attacks": "Attaques",
   "npc_details": "Détails",
   "edit_npc": "Modifier",

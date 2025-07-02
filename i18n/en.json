@@ -34,6 +34,7 @@
   "npc_vig": "Fort",
   "npc_vol": "Will",
   "npc_immunities": "Immunities",
+  "npc_abilities": "Abilities",
   "npc_attacks": "Attacks",
   "npc_details": "Details",
   "edit_npc": "Edit",
