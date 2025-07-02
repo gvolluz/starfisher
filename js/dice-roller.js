@@ -353,3 +353,112 @@ function updatePositioningClass(element) {
         element.classList.add('right-positioned');
     }
 }
+
+/**
+ * Roll attack and damage dice
+ * @param {string|number} attackModifier - The attack modifier to add to the D20 roll
+ * @param {string} damageNotation - The damage dice notation (e.g., "D10", "2D6+3")
+ * @returns {Object} An object containing the formatted result string, attack roll value, and damage roll value
+ */
+function rollAttackAndDamage(attackModifier, damageNotation) {
+    // Convert attackModifier to a number (default to 0 if not provided or invalid)
+    const modifier = parseInt(attackModifier) || 0;
+
+    // Roll D20 for attack
+    const attackDieResult = rollDie(20);
+    const attackRoll = attackDieResult + modifier;
+
+    // Parse and roll damage dice
+    const damageRoll = rollDamage(damageNotation);
+
+    // Format the result string
+    const resultString = `Attack: ${attackDieResult} + ${modifier} = ${attackRoll}, Damage: ${damageRoll.details} = ${damageRoll.total}`;
+
+    return {
+        resultString: resultString,
+        attackRoll: attackRoll,
+        damageRoll: damageRoll.total
+    };
+}
+
+/**
+ * Roll damage dice based on notation
+ * @param {string} notation - The dice notation (e.g., "D10", "2D6+3", "2D10 + 2D6 + 8")
+ * @returns {Object} An object containing the total damage and details of the roll
+ */
+function rollDamage(notation) {
+    if (!notation) {
+        return { total: 0, details: "No damage" };
+    }
+
+    // Normalize the notation by removing spaces
+    const normalizedNotation = notation.replace(/\s+/g, '');
+
+    // Split the notation into dice groups (e.g., "2D6+3+1D8" -> ["2D6+3", "1D8"])
+    const diceGroups = normalizedNotation.split(/(?=[+\-])/g).map(group => {
+        // If the group starts with + or -, remove it for processing but keep track of the sign
+        const sign = group.startsWith('-') ? -1 : 1;
+        const diceGroup = group.replace(/^[+\-]/, '');
+        return { group: diceGroup, sign: sign };
+    });
+
+    let totalDamage = 0;
+    let rollDetails = [];
+
+    // Process each dice group
+    diceGroups.forEach(({ group, sign }) => {
+        // Check if it's a static modifier (e.g., "+5")
+        if (/^\d+$/.test(group)) {
+            const modifier = parseInt(group);
+            totalDamage += sign * modifier;
+            rollDetails.push(sign > 0 ? `+${modifier}` : `${sign * modifier}`);
+            return;
+        }
+
+        // Parse dice notation (e.g., "2D6" or "D10+3")
+        const diceParts = group.split(/[dD]/);
+        const numDice = diceParts[0] ? parseInt(diceParts[0]) : 1;
+
+        // Check if there's a modifier after the dice (e.g., "D10+3")
+        const modifierMatch = diceParts[1].match(/^(\d+)([\+\-]\d+)?$/);
+        if (!modifierMatch) return;
+
+        const sides = parseInt(modifierMatch[1]);
+        const diceModifier = modifierMatch[2] ? parseInt(modifierMatch[2]) : 0;
+
+        // Roll the dice
+        const diceResults = [];
+        let diceTotal = 0;
+        for (let i = 0; i < numDice; i++) {
+            const result = rollDie(sides);
+            diceResults.push(result);
+            diceTotal += result;
+        }
+
+        // Add the modifier
+        diceTotal += diceModifier;
+
+        // Apply the sign
+        totalDamage += sign * diceTotal;
+
+        // Format the roll details
+        let groupDetails = `${sign > 0 && rollDetails.length > 0 ? '+' : ''}${sign < 0 ? '-' : ''}${numDice}D${sides}[${diceResults.join(', ')}]`;
+        if (diceModifier !== 0) {
+            groupDetails += `${diceModifier > 0 ? '+' : ''}${diceModifier}`;
+        }
+        rollDetails.push(groupDetails);
+    });
+
+    return {
+        total: totalDamage,
+        details: rollDetails.join(' ')
+    };
+}
+
+// Export functions for use in other modules
+window.diceRoller = {
+    rollDie,
+    rollDice,
+    rollAttackAndDamage,
+    rollDamage
+};

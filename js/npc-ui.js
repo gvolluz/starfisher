@@ -7,6 +7,10 @@
 let allAbilities = [];
 let selectedAbilities = [];
 
+// NPC class options
+const npcClassOptions = ['Agent', 'Émissaire', 'Mécano', 'Mystique', 'Solarien', 'Soldat', 'Technomancien'];
+let selectedClasses = [];
+
 /**
  * Fetch all abilities from the database
  * @returns {Promise<Array>} A promise that resolves with an array of abilities
@@ -22,6 +26,342 @@ async function fetchAbilities() {
     } catch (error) {
         console.error('Error fetching abilities:', error);
         return [];
+    }
+}
+
+/**
+ * Create the classes multiselect UI
+ * @param {Array} selectedClassNames - Array of selected class names
+ * @param {boolean} readonly - Whether the UI should be readonly
+ * @returns {HTMLElement} The classes multiselect container
+ */
+function createClassesMultiselect(selectedClassNames = [], readonly = true) {
+    // Create the container
+    const container = document.createElement('div');
+    container.className = 'classes-multiselect';
+    container.id = 'classes-multiselect';
+
+    // Apply inline styles to the container
+    container.style.width = '100%';
+    container.style.border = '2px solid #4a90e2';
+    container.style.borderRadius = '4px';
+    container.style.padding = '8px';
+    container.style.minHeight = '40px';
+    container.style.backgroundColor = '#fff';
+    container.style.position = 'relative';
+    container.style.marginTop = '5px';
+    container.style.marginBottom = '5px';
+
+    // Create the selected classes list
+    const selectedList = document.createElement('div');
+    selectedList.className = 'selected-classes';
+
+    // Apply inline styles to the selected classes list
+    selectedList.style.display = 'flex';
+    selectedList.style.flexWrap = 'wrap';
+    selectedList.style.gap = '10px';
+    selectedList.style.justifyContent = 'flex-start';
+    selectedList.style.backgroundColor = '#f0f8ff';
+    selectedList.style.padding = '10px';
+    selectedList.style.borderRadius = '4px';
+
+    // Reset the global selectedClasses array
+    selectedClasses = [];
+
+    // Add selected classes to the list
+    if (selectedClassNames && selectedClassNames.length > 0) {
+        selectedClassNames.forEach(className => {
+            if (npcClassOptions.includes(className)) {
+                selectedClasses.push(className);
+            }
+        });
+
+        // Sort selected classes alphabetically
+        selectedClasses.sort((a, b) => a.localeCompare(b));
+
+        // Create elements for each class
+        selectedClasses.forEach(className => {
+            const classElement = createClassElement(className, readonly);
+            selectedList.appendChild(classElement);
+        });
+    } else {
+        // If there are no classes, add a placeholder
+        const placeholder = document.createElement('div');
+        placeholder.className = 'class-placeholder';
+        placeholder.textContent = '-';
+
+        // Apply inline styles to the placeholder
+        placeholder.style.display = 'flex';
+        placeholder.style.alignItems = 'center';
+        placeholder.style.justifyContent = 'center';
+        placeholder.style.color = '#999';
+        placeholder.style.padding = '4px 8px';
+        placeholder.style.width = '100%';
+        placeholder.style.fontStyle = 'italic';
+        placeholder.style.fontSize = '14px';
+
+        selectedList.appendChild(placeholder);
+    }
+
+    container.appendChild(selectedList);
+
+    return container;
+}
+
+/**
+ * Create an element for a selected class
+ * @param {string} className - The class name
+ * @param {boolean} readonly - Whether the UI should be readonly
+ * @returns {HTMLElement} The class element
+ */
+function createClassElement(className, readonly = true) {
+    const element = document.createElement('div');
+    element.className = 'class-item';
+    element.setAttribute('data-class', className);
+
+    // Apply inline styles to the class item
+    element.style.display = 'flex';
+    element.style.alignItems = 'center';
+    element.style.backgroundColor = '#4a90e2';
+    element.style.color = 'white';
+    element.style.borderRadius = '6px';
+    element.style.padding = '6px 10px';
+    element.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+    element.style.width = 'fit-content';
+    element.style.border = '2px solid #2a70c2';
+    element.style.margin = '2px';
+
+    // Create the class name
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'class-name';
+    nameSpan.textContent = className;
+    nameSpan.style.marginRight = '8px';
+    nameSpan.style.fontWeight = '500';
+    nameSpan.style.color = 'white';
+    element.appendChild(nameSpan);
+
+    // Create the remove button (only in edit mode)
+    if (!readonly) {
+        const removeButton = document.createElement('button');
+        removeButton.className = 'btn btn-small remove-class-btn';
+        removeButton.textContent = '✖';
+        removeButton.title = 'Retirer';
+
+        // Apply inline styles to the remove button
+        removeButton.style.width = '20px';
+        removeButton.style.height = '20px';
+        removeButton.style.padding = '0';
+        removeButton.style.marginLeft = '6px';
+        removeButton.style.fontSize = '10px';
+        removeButton.style.lineHeight = '1';
+        removeButton.style.borderRadius = '50%';
+        removeButton.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        removeButton.style.color = 'white';
+        removeButton.style.border = 'none';
+        removeButton.style.display = 'flex';
+        removeButton.style.alignItems = 'center';
+        removeButton.style.justifyContent = 'center';
+
+        removeButton.addEventListener('click', () => removeClass(className));
+        element.appendChild(removeButton);
+    }
+
+    return element;
+}
+
+/**
+ * Show the class selector popup
+ */
+function showClassSelector() {
+    // Check if a popup already exists and remove it
+    const existingPopup = document.querySelector('.class-selector-popup');
+    if (existingPopup) {
+        existingPopup.remove();
+    }
+
+    // Create the popup container
+    const popup = document.createElement('div');
+    popup.className = 'class-selector-popup';
+    popup.style.position = 'fixed';
+    popup.style.top = '0';
+    popup.style.left = '0';
+    popup.style.width = '100%';
+    popup.style.height = '100%';
+    popup.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+    popup.style.display = 'flex';
+    popup.style.justifyContent = 'center';
+    popup.style.alignItems = 'center';
+    popup.style.zIndex = '1000';
+
+    // Create the popup content
+    const content = document.createElement('div');
+    content.className = 'class-selector-content';
+    content.style.backgroundColor = '#fff';
+    content.style.borderRadius = '8px';
+    content.style.width = '80%';
+    content.style.maxWidth = '80%';
+    content.style.maxHeight = '80%';
+    content.style.overflow = 'auto';
+    content.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+    content.style.marginTop = '60px'; /* Position below the details-header */
+
+    // Create the header
+    const header = document.createElement('div');
+    header.className = 'class-selector-header';
+    header.style.display = 'flex';
+    header.style.justifyContent = 'space-between';
+    header.style.alignItems = 'center';
+    header.style.padding = '12px 16px';
+    header.style.borderBottom = '1px solid #eee';
+
+    const title = document.createElement('h3');
+    title.textContent = 'Sélectionner une classe';
+    title.style.margin = '0';
+    header.appendChild(title);
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'btn btn-small close-popup-btn';
+    closeButton.textContent = '✖';
+    closeButton.style.width = '24px';
+    closeButton.style.height = '24px';
+    closeButton.style.padding = '0';
+    closeButton.style.fontSize = '12px';
+    closeButton.style.lineHeight = '1';
+    closeButton.addEventListener('click', () => popup.remove());
+    header.appendChild(closeButton);
+
+    content.appendChild(header);
+
+    // Create the classes list
+    const classesList = document.createElement('div');
+    classesList.className = 'classes-list';
+    classesList.style.padding = '16px';
+    classesList.style.maxHeight = '400px';
+    classesList.style.overflowY = 'auto';
+
+    // Add each class to the list
+    npcClassOptions.forEach(className => {
+        // Skip if already selected
+        if (selectedClasses.includes(className)) {
+            return;
+        }
+
+        const classItem = document.createElement('div');
+        classItem.className = 'class-selector-item';
+        classItem.style.display = 'flex';
+        classItem.style.justifyContent = 'space-between';
+        classItem.style.alignItems = 'center';
+        classItem.style.padding = '8px 12px';
+        classItem.style.borderBottom = '1px solid #eee';
+        classItem.style.cursor = 'pointer';
+        classItem.setAttribute('data-class', className);
+
+        // Add hover effect
+        classItem.addEventListener('mouseover', () => {
+            classItem.style.backgroundColor = '#f5f5f5';
+        });
+        classItem.addEventListener('mouseout', () => {
+            classItem.style.backgroundColor = '';
+        });
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'class-selector-name';
+        nameSpan.textContent = className;
+        classItem.appendChild(nameSpan);
+
+        // Add click event to select the class
+        classItem.addEventListener('click', () => {
+            addClass(className);
+            popup.remove();
+        });
+
+        classesList.appendChild(classItem);
+    });
+
+    content.appendChild(classesList);
+    popup.appendChild(content);
+
+    // Find the details-header element to position the popup relative to it
+    const detailsHeader = document.querySelector('.details-header');
+    if (detailsHeader) {
+        // Insert the popup after the details-header
+        detailsHeader.parentNode.insertBefore(popup, detailsHeader.nextSibling);
+    } else {
+        // Fallback: Add the popup to the main container
+        const mainContainer = document.getElementById('app-container');
+        if (mainContainer) {
+            mainContainer.appendChild(popup);
+        } else {
+            // Last resort: Add to body
+            document.body.appendChild(popup);
+        }
+    }
+
+    // Add event listener to close the popup when clicking outside of it
+    popup.addEventListener('click', (e) => {
+        if (e.target === popup) {
+            popup.remove();
+        }
+    });
+}
+
+/**
+ * Add a class to the selected classes
+ * @param {string} className - The class name
+ */
+function addClass(className) {
+    // Add to the global selectedClasses array
+    selectedClasses.push(className);
+
+    // Sort selected classes alphabetically
+    selectedClasses.sort((a, b) => a.localeCompare(b));
+
+    // Rebuild the UI with sorted classes
+    const selectedList = document.querySelector('.selected-classes');
+    if (selectedList) {
+        // Clear the current list
+        selectedList.innerHTML = '';
+
+        // Add all classes in sorted order
+        selectedClasses.forEach(className => {
+            const classElement = createClassElement(className, false);
+            selectedList.appendChild(classElement);
+        });
+    }
+}
+
+/**
+ * Remove a class from the selected classes
+ * @param {string} className - The class name
+ */
+function removeClass(className) {
+    // Remove from the global selectedClasses array
+    selectedClasses = selectedClasses.filter(c => c !== className);
+
+    // Remove from the UI
+    const classElement = document.querySelector(`.class-item[data-class="${className}"]`);
+    if (classElement) {
+        classElement.remove();
+    }
+
+    // If there are no classes left, add the placeholder
+    const selectedList = document.querySelector('.selected-classes');
+    if (selectedList && selectedClasses.length === 0) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'class-placeholder';
+        placeholder.textContent = '-';
+
+        // Apply inline styles to the placeholder
+        placeholder.style.display = 'flex';
+        placeholder.style.alignItems = 'center';
+        placeholder.style.justifyContent = 'center';
+        placeholder.style.color = '#999';
+        placeholder.style.padding = '4px 8px';
+        placeholder.style.width = '100%';
+        placeholder.style.fontStyle = 'italic';
+        placeholder.style.fontSize = '14px';
+
+        selectedList.appendChild(placeholder);
     }
 }
 
@@ -564,6 +904,18 @@ function addAbilitiesStyles() {
         }
 
         /* Ability Selector Popup styles are now applied inline */
+
+        /* Attack styles */
+        .roll-attack-btn {
+            margin-left: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .invalid {
+            border: 2px solid #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
     `;
 
     // Add style to document
@@ -621,9 +973,10 @@ async function initNpcsList() {
  * @returns {HTMLElement} The list item element
  */
 function createNpcListItem(npc) {
+    console.log('npc: ', npc);
     const listItem = document.createElement('div');
     listItem.className = 'list-item';
-    listItem.setAttribute('data-id', npc.id);
+    listItem.setAttribute('data-id', npc._id);
 
     // Create the main info section (name, class, FP)
     const infoSection = document.createElement('div');
@@ -638,7 +991,7 @@ function createNpcListItem(npc) {
     // Class
     const classSpan = document.createElement('span');
     classSpan.className = 'npc-class';
-    classSpan.textContent = npc.class || 'Unknown';
+    classSpan.textContent = npc.classes?.join(',') || '-';
     infoSection.appendChild(classSpan);
 
     // FP (Challenge Rating)
@@ -709,6 +1062,17 @@ async function showNpcDetails(npc) {
                 <div class="npc-fp-container">
                     <label for="npc-fp">${window.i18n.t('npc_fp')}</label>
                     <input type="number" id="npc-fp" value="${npc.fp || ''}" readonly>
+                </div>
+            </div>
+
+            <!-- Class line -->
+            <div class="npc-detail-row">
+                <div class="npc-classes-container">
+                    <div style="display: flex; align-items: center;">
+                        <label>${window.i18n.t('npc_class')}</label>
+                        <button id="add-class-btn" class="btn btn-small add-class-btn" style="margin-left: 8px; display: none;">➕</button>
+                    </div>
+                    <div id="npc-classes-container"></div>
                 </div>
             </div>
 
@@ -805,6 +1169,14 @@ async function showNpcDetails(npc) {
     // Ensure abilities are loaded before populating the container
     await fetchAbilities();
 
+    // Populate the classes container
+    const classesContainer = document.getElementById('npc-classes-container');
+    if (classesContainer) {
+        const selectedClassNames = npc.classes || [];
+        const classesMultiselect = createClassesMultiselect(selectedClassNames, true);
+        classesContainer.appendChild(classesMultiselect);
+    }
+
     // Populate the abilities container
     const abilitiesContainer = document.getElementById('npc-abilities-container');
     if (abilitiesContainer) {
@@ -848,6 +1220,51 @@ async function showNpcDetails(npc) {
     if (addAttackBtn) {
         addAttackBtn.addEventListener('click', addNewAttack);
     }
+
+    // Add event listeners to the dice buttons
+    const rollButtons = document.querySelectorAll('.roll-attack-btn');
+    rollButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            const attackItem = e.target.closest('.attack-item');
+            if (!attackItem) return;
+
+            const attackDisplay = attackItem.querySelector('.attack-display');
+            if (!attackDisplay) return;
+
+            // Get the attack modifier and damage notation
+            const damageNotation = e.target.getAttribute('data-damage');
+            const attackModifier = attackItem.getAttribute('data-modifier');
+
+            // Roll the attack and damage
+            if (window.diceRoller && window.diceRoller.rollAttackAndDamage) {
+                const result = window.diceRoller.rollAttackAndDamage(attackModifier, damageNotation);
+
+                // Display the result
+                alert(result.resultString);
+                console.log('Attack roll:', result.attackRoll, 'Damage roll:', result.damageRoll);
+            } else {
+                console.error('Dice roller not available');
+            }
+        });
+    });
+}
+
+/**
+ * Validate dice notation
+ * @param {string} notation - The dice notation to validate
+ * @returns {boolean} Whether the notation is valid
+ */
+function validateDiceNotation(notation) {
+    if (!notation) return false;
+
+    // Remove all spaces for easier validation
+    const normalizedNotation = notation.replace(/\s+/g, '');
+
+    // Regex to match dice notation patterns like "D10", "D10+5", "2D10 + 2D6 + 8"
+    // This regex allows for multiple dice groups with optional modifiers
+    const diceGroupPattern = /^((\d+)?[dD](\d+)([\+\-]\d+)?)([\+\-]((\d+)?[dD](\d+)([\+\-]\d+)?))*/;
+
+    return diceGroupPattern.test(normalizedNotation);
 }
 
 /**
@@ -863,10 +1280,11 @@ function renderAttacksList(attacks) {
     let html = '<div class="attacks-list">';
     attacks.forEach((attack, index) => {
         html += `
-            <div class="attack-item" data-index="${index}">
+            <div class="attack-item" data-index="${index}" data-modifier="${attack.modifier || 0}">
                 <div class="attack-display">
                     ${attack.name || ''} ${attack.modifier ? '+' + attack.modifier : ''} (${attack.damage || ''} ${attack.type || ''})
                     ${attack.note ? ' ' + attack.note : ''}
+                    ${attack.damage ? `<button class="btn btn-small roll-attack-btn" data-damage="${attack.damage}" title="Roll attack and damage">🎲</button>` : ''}
                 </div>
                 <div class="attack-edit" style="display: none;">
                     <div class="attack-edit-row">
@@ -882,7 +1300,7 @@ function renderAttacksList(attacks) {
                     <div class="attack-edit-row">
                         <div class="attack-field">
                             <label>${window.i18n.t('attack_damage')}</label>
-                            <input type="text" class="attack-damage" value="${attack.damage || ''}">
+                            <input type="text" class="attack-damage" value="${attack.damage || ''}" placeholder="e.g. D10, 2D6+3">
                         </div>
                         <div class="attack-field">
                             <label>${window.i18n.t('attack_type')}</label>
@@ -937,6 +1355,17 @@ async function toggleNpcEditMode(editMode) {
         editActionsTop.style.display = editMode ? 'flex' : 'none';
     }
 
+    // Show/hide add class button
+    const addClassBtn = document.getElementById('add-class-btn');
+    if (addClassBtn) {
+        addClassBtn.style.display = editMode ? 'inline-block' : 'none';
+        // Add event listener if it doesn't already have one
+        if (editMode && !addClassBtn._hasClickListener) {
+            addClassBtn.addEventListener('click', showClassSelector);
+            addClassBtn._hasClickListener = true;
+        }
+    }
+
     // Show/hide add ability button
     const addAbilityBtn = document.getElementById('add-ability-btn');
     if (addAbilityBtn) {
@@ -966,16 +1395,44 @@ async function toggleNpcEditMode(editMode) {
         edit.style.display = editMode ? 'block' : 'none';
     });
 
-    // Add event listeners to remove attack buttons
+    // Add event listeners to remove attack buttons and validate damage fields
     if (editMode) {
         const removeButtons = document.querySelectorAll('.remove-attack-btn');
         removeButtons.forEach(button => {
             button.addEventListener('click', removeAttack);
         });
+
+        // Add event listeners to validate damage fields
+        const damageInputs = document.querySelectorAll('.attack-damage');
+        damageInputs.forEach(input => {
+            input.addEventListener('change', (e) => {
+                const value = e.target.value.trim();
+                if (value && !validateDiceNotation(value)) {
+                    e.target.classList.add('invalid');
+                    alert('Invalid dice notation. Please use formats like "D10", "D10+5", or "2D10 + 2D6 + 8".');
+                } else {
+                    e.target.classList.remove('invalid');
+                }
+            });
+        });
     }
 
     // Ensure abilities are loaded before updating the multiselect
     await fetchAbilities();
+
+    // Update classes multiselect
+    const classesContainer = document.getElementById('npc-classes-container');
+    if (classesContainer) {
+        // Get the current selected class names
+        const selectedClassNames = selectedClasses;
+
+        // Clear the container
+        classesContainer.innerHTML = '';
+
+        // Create a new multiselect with the appropriate mode
+        const classesMultiselect = createClassesMultiselect(selectedClassNames, !editMode);
+        classesContainer.appendChild(classesMultiselect);
+    }
 
     // Update abilities multiselect
     const abilitiesContainer = document.getElementById('npc-abilities-container');
@@ -1026,7 +1483,7 @@ function addNewAttack() {
             <div class="attack-edit-row">
                 <div class="attack-field">
                     <label>${window.i18n.t('attack_damage')}</label>
-                    <input type="text" class="attack-damage" value="">
+                    <input type="text" class="attack-damage" value="" placeholder="e.g. D10, 2D6+3">
                 </div>
                 <div class="attack-field">
                     <label>${window.i18n.t('attack_type')}</label>
@@ -1052,6 +1509,20 @@ function addNewAttack() {
     const removeButton = newAttack.querySelector('.remove-attack-btn');
     if (removeButton) {
         removeButton.addEventListener('click', removeAttack);
+    }
+
+    // Add event listener to validate the damage field
+    const damageInput = newAttack.querySelector('.attack-damage');
+    if (damageInput) {
+        damageInput.addEventListener('change', (e) => {
+            const value = e.target.value.trim();
+            if (value && !validateDiceNotation(value)) {
+                e.target.classList.add('invalid');
+                alert('Invalid dice notation. Please use formats like "D10", "D10+5", or "2D10 + 2D6 + 8".');
+            } else {
+                e.target.classList.remove('invalid');
+            }
+        });
     }
 }
 
@@ -1093,6 +1564,9 @@ async function saveNpcEdit() {
     const vol = document.getElementById('npc-vol').value;
     const details = document.getElementById('npc-details').value;
 
+    // Get the selected classes
+    const classes = selectedClasses;
+
     // Get the selected abilities
     const abilities = selectedAbilities.map(ability => ability._id);
 
@@ -1105,6 +1579,7 @@ async function saveNpcEdit() {
     // Get the attacks
     const attacks = [];
     const attackItems = document.querySelectorAll('.attack-item');
+    let hasInvalidDamage = false;
 
     attackItems.forEach(item => {
         const nameInput = item.querySelector('.attack-name');
@@ -1114,15 +1589,30 @@ async function saveNpcEdit() {
         const noteInput = item.querySelector('.attack-note');
 
         if (nameInput && nameInput.value) {
+            // Validate damage notation if provided
+            const damageValue = damageInput ? damageInput.value.trim() : '';
+            if (damageValue && !validateDiceNotation(damageValue)) {
+                damageInput.classList.add('invalid');
+                hasInvalidDamage = true;
+            } else if (damageInput) {
+                damageInput.classList.remove('invalid');
+            }
+
             attacks.push({
                 name: nameInput.value,
                 modifier: modifierInput ? modifierInput.value : '',
-                damage: damageInput ? damageInput.value : '',
+                damage: damageValue,
                 type: typeInput ? typeInput.value : '',
                 note: noteInput ? noteInput.value : ''
             });
         }
     });
+
+    // If there's invalid damage notation, show an error and don't save
+    if (hasInvalidDamage) {
+        alert('Invalid dice notation in damage field. Please use formats like "D10", "D10+5", or "2D10 + 2D6 + 8".');
+        return;
+    }
 
     // Create the updated NPC object
     const updatedNpc = {
@@ -1138,6 +1628,7 @@ async function saveNpcEdit() {
         ref,
         vig,
         vol,
+        classes,
         abilities,
         attacks,
         details,
@@ -1184,6 +1675,17 @@ async function showAddNpcForm() {
                 <div class="npc-fp-container">
                     <label for="npc-fp">${window.i18n.t('npc_fp')}</label>
                     <input type="number" id="npc-fp">
+                </div>
+            </div>
+
+            <!-- Class line -->
+            <div class="npc-detail-row">
+                <div class="npc-classes-container">
+                    <div style="display: flex; align-items: center;">
+                        <label>${window.i18n.t('npc_class')}</label>
+                        <button id="add-class-btn" class="btn btn-small add-class-btn" style="margin-left: 8px;">➕</button>
+                    </div>
+                    <div id="npc-classes-container"></div>
                 </div>
             </div>
 
@@ -1280,6 +1782,17 @@ async function showAddNpcForm() {
     // Ensure abilities are loaded before populating the container
     await fetchAbilities();
 
+    // Populate the classes container
+    const classesContainer = document.getElementById('npc-classes-container');
+    if (classesContainer) {
+        // Reset the global selectedClasses array
+        selectedClasses = [];
+
+        // Create a new multiselect in edit mode
+        const classesMultiselect = createClassesMultiselect([], false);
+        classesContainer.appendChild(classesMultiselect);
+    }
+
     // Populate the abilities container
     const abilitiesContainer = document.getElementById('npc-abilities-container');
     if (abilitiesContainer) {
@@ -1311,6 +1824,12 @@ async function showAddNpcForm() {
         addAttackBtn.addEventListener('click', addNewAttack);
     }
 
+    // Add event listener for the add class button
+    const addClassBtn = document.getElementById('add-class-btn');
+    if (addClassBtn) {
+        addClassBtn.addEventListener('click', showClassSelector);
+    }
+
     // Add event listener for the add ability button
     const addAbilityBtn = document.getElementById('add-ability-btn');
     if (addAbilityBtn) {
@@ -1336,12 +1855,53 @@ async function saveNpc() {
     const vol = document.getElementById('npc-vol').value;
     const details = document.getElementById('npc-details').value;
 
+    // Get the selected classes
+    const classes = selectedClasses;
+
     // Get the selected abilities
     const abilities = selectedAbilities.map(ability => ability._id);
 
     // Validate required fields
     if (!name) {
         alert(window.i18n.t('name_required'));
+        return;
+    }
+
+    // Get the attacks
+    const attacks = [];
+    const attackItems = document.querySelectorAll('.attack-item');
+    let hasInvalidDamage = false;
+
+    attackItems.forEach(item => {
+        const nameInput = item.querySelector('.attack-name');
+        const modifierInput = item.querySelector('.attack-modifier');
+        const damageInput = item.querySelector('.attack-damage');
+        const typeInput = item.querySelector('.attack-type');
+        const noteInput = item.querySelector('.attack-note');
+
+        if (nameInput && nameInput.value) {
+            // Validate damage notation if provided
+            const damageValue = damageInput ? damageInput.value.trim() : '';
+            if (damageValue && !validateDiceNotation(damageValue)) {
+                damageInput.classList.add('invalid');
+                hasInvalidDamage = true;
+            } else if (damageInput) {
+                damageInput.classList.remove('invalid');
+            }
+
+            attacks.push({
+                name: nameInput.value,
+                modifier: modifierInput ? modifierInput.value : '',
+                damage: damageValue,
+                type: typeInput ? typeInput.value : '',
+                note: noteInput ? noteInput.value : ''
+            });
+        }
+    });
+
+    // If there's invalid damage notation, show an error and don't save
+    if (hasInvalidDamage) {
+        alert('Invalid dice notation in damage field. Please use formats like "D10", "D10+5", or "2D10 + 2D6 + 8".');
         return;
     }
 
@@ -1358,7 +1918,9 @@ async function saveNpc() {
         ref,
         vig,
         vol,
+        classes,
         abilities,
+        attacks,
         details,
         createdAt: Date.now()
     };
